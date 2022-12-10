@@ -2,7 +2,7 @@
 
 
 #include "FremenCharacter.h"
-
+#include "VoiceProject/Items/BaseWeapon.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values
@@ -26,6 +26,21 @@ AFremenCharacter::AFremenCharacter()
 void AFremenCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	if (WeaponClass != nullptr)
+	{
+		if (UWorld* World = GetWorld())
+		{
+			FActorSpawnParameters SpawnParameters;
+			
+			SpawnParameters.Owner = this;
+			SpawnParameters.Instigator = this;
+
+			if (ABaseWeapon* WeaponActor = World->SpawnActor<ABaseWeapon>(WeaponClass, GetActorTransform(), SpawnParameters))
+			{
+				WeaponActor->OnEquipped();
+			}
+		}
+	}
 }
 
 // Called every frame
@@ -58,7 +73,6 @@ void AFremenCharacter::MoveForward(float AxisValue)
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 		AddMovementInput(Direction, AxisValue);
 	}
-	// AddMovementInput(GetActorForwardVector() * AxisValue);
 }
 
 void AFremenCharacter::MoveRight(float AxisValue)
@@ -74,7 +88,6 @@ void AFremenCharacter::MoveRight(float AxisValue)
 		// add movement in that direction
 		AddMovementInput(Direction, AxisValue);
 	}
-	// AddMovementInput(GetActorRightVector() * AxisValue);
 }
 
 void AFremenCharacter::LookUp(float AxisValue)

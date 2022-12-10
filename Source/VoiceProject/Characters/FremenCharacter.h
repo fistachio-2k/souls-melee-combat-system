@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "FremenCharacter.generated.h"
 
+class ABaseWeapon;
+
 UCLASS()
 class VOICEPROJECT_API AFremenCharacter : public ACharacter
 {
@@ -32,4 +34,7 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	float RotationRate = 100.f;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<ABaseWeapon> WeaponClass;
 };
