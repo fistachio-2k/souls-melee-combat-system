@@ -30,6 +30,8 @@ public:
 	void LookUp(float AxisValue);
 	void LookRight(float AxisValue);
 	
+	void ToggleWeapon();
+	
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
@@ -37,4 +39,13 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<ABaseWeapon> WeaponClass;
+
+	UPROPERTY(EditAnywhere)
+	UAnimMontage* DrawWeaponMontage;
+
+	UPROPERTY(EditAnywhere)
+	UAnimMontage* SheatheWeaponMontage;
+
+private:
+	ABaseWeapon* MainWeapon;
 };

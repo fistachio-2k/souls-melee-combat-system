@@ -25,7 +25,9 @@ AFremenCharacter::AFremenCharacter()
 // Called when the game starts or when spawned
 void AFremenCharacter::BeginPlay()
 {
-	Super::BeginPlay();
+	Super::BeginPlay();		
+	
+	// Spawn main weapon.
 	if (WeaponClass != nullptr)
 	{
 		if (UWorld* World = GetWorld())
@@ -34,10 +36,11 @@ void AFremenCharacter::BeginPlay()
 			
 			SpawnParameters.Owner = this;
 			SpawnParameters.Instigator = this;
-
-			if (ABaseWeapon* WeaponActor = World->SpawnActor<ABaseWeapon>(WeaponClass, GetActorTransform(), SpawnParameters))
+			MainWeapon = World->SpawnActor<ABaseWeapon>(WeaponClass, GetActorTransform(), SpawnParameters);
+			
+			if (MainWeapon)
 			{
-				WeaponActor->OnEquipped();
+				MainWeapon->OnEquipped();
 			}
 		}
 	}
@@ -59,6 +62,8 @@ void AFremenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
     PlayerInputComponent->BindAxis(TEXT("MoveRight"), this, &AFremenCharacter::MoveRight);
     PlayerInputComponent->BindAxis(TEXT("LookUp"), this, &AFremenCharacter::LookUp);
     PlayerInputComponent->BindAxis(TEXT("LookRight"), this, &AFremenCharacter::LookRight);
+
+	PlayerInputComponent->BindAction(TEXT("ToggleWeapon"), IE_Pressed, this, &AFremenCharacter::ToggleWeapon);
 }
 
 void AFremenCharacter::MoveForward(float AxisValue)
@@ -98,5 +103,20 @@ void AFremenCharacter::LookUp(float AxisValue)
 void AFremenCharacter::LookRight(float AxisValue)
 {
 	AddControllerYawInput(AxisValue * RotationRate * GetWorld()->GetDeltaSeconds());
+}
+
+void AFremenCharacter::ToggleWeapon()
+{
+	if(GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("ToggleWeapon!"));
+
+	if (MainWeapon)
+	{
+		if (UAnimMontage* Montage = MainWeapon->bIsHandEquipped ? SheatheWeaponMontage : DrawWeaponMontage)
+		{
+			PlayAnimMontage(Montage);
+			MainWeapon->bIsHandEquipped = !MainWeapon->bIsHandEquipped;
+		}
+	}
 }
 

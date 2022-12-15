@@ -32,7 +32,7 @@ void ABaseWeapon::Tick(float DeltaTime)
 void ABaseWeapon::OnEquipped()
 {
 	// IEquippable::Execute_OnEquipped(this);
-	AttachActor(SocketName);
+	AttachActor(HeapSocketName);
 }
 
 void ABaseWeapon::OnUnequipped()

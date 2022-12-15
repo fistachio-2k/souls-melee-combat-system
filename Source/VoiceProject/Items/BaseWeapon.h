@@ -32,5 +32,12 @@ public:
 	UStaticMeshComponent* MeshComponent;
 	
 	UPROPERTY(EditAnywhere)
-	FName SocketName;
+	FName HeapSocketName;
+
+	UPROPERTY(EditAnywhere)
+	FName HandSocketName;
+
+public:
+	bool bIsHandEquipped = false;
+
 };
