@@ -46,6 +46,7 @@ public:
 	UPROPERTY(EditAnywhere)
 	UAnimMontage* SheatheWeaponMontage;
 
+	ABaseWeapon& GetMainWeapon() const;
 private:
 	ABaseWeapon* MainWeapon;
 };

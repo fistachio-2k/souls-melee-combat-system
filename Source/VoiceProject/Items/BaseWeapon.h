@@ -27,6 +27,7 @@ public:
 	virtual void OnUnequipped() override;
 	virtual void AttachActor(FName SocketNameToAttach) override;
 	virtual UPrimitiveComponent* GetItemMesh() override;
+	bool IsWeaponInHande() const;
 	
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* MeshComponent;
@@ -37,7 +38,7 @@ public:
 	UPROPERTY(EditAnywhere)
 	FName HandSocketName;
 
-public:
+private:
 	bool bIsHandEquipped = false;
 
 };

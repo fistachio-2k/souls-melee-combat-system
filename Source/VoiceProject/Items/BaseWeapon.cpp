@@ -52,12 +52,17 @@ void ABaseWeapon::AttachActor(FName SocketNameToAttach)
 		
 		return;
 	}
-	
+	bIsHandEquipped = SocketNameToAttach == HandSocketName;
 	AttachToComponent(Character->GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, SocketNameToAttach);
 }
 
 UPrimitiveComponent* ABaseWeapon::GetItemMesh()
 {
 	return MeshComponent;
+}
+
+bool ABaseWeapon::IsWeaponInHande() const
+{
+	return bIsHandEquipped;
 }
 

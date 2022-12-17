@@ -66,6 +66,11 @@ void AFremenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction(TEXT("ToggleWeapon"), IE_Pressed, this, &AFremenCharacter::ToggleWeapon);
 }
 
+ABaseWeapon& AFremenCharacter::GetMainWeapon() const
+{
+	return *MainWeapon;
+}
+
 void AFremenCharacter::MoveForward(float AxisValue)
 {
 	if ((Controller != nullptr) && (AxisValue != 0.0f))
@@ -107,15 +112,14 @@ void AFremenCharacter::LookRight(float AxisValue)
 
 void AFremenCharacter::ToggleWeapon()
 {
-	if(GEngine)
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("ToggleWeapon!"));
-
 	if (MainWeapon)
 	{
-		if (UAnimMontage* Montage = MainWeapon->bIsHandEquipped ? SheatheWeaponMontage : DrawWeaponMontage)
+		if (UAnimMontage* Montage = MainWeapon->IsWeaponInHande() ? SheatheWeaponMontage : DrawWeaponMontage)
 		{
 			PlayAnimMontage(Montage);
-			MainWeapon->bIsHandEquipped = !MainWeapon->bIsHandEquipped;
+			
+			if(GEngine)
+				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, FString::Printf(TEXT("ToggleWeapon")));
 		}
 	}
 }
