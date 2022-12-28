@@ -4,6 +4,8 @@
 #include "FremenCharacter.h"
 #include "VoiceProject/Items/BaseWeapon.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "VoiceProject/Items/Interactable.h"
 
 // Sets default values
 AFremenCharacter::AFremenCharacter()
@@ -64,11 +66,21 @@ void AFremenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
     PlayerInputComponent->BindAxis(TEXT("LookRight"), this, &AFremenCharacter::LookRight);
 
 	PlayerInputComponent->BindAction(TEXT("ToggleWeapon"), IE_Pressed, this, &AFremenCharacter::ToggleWeapon);
+	PlayerInputComponent->BindAction(TEXT("Interact"), IE_Pressed, this, &AFremenCharacter::Interact);
 }
 
 ABaseWeapon& AFremenCharacter::GetMainWeapon() const
 {
 	return *MainWeapon;
+}
+
+void AFremenCharacter::SetMainWeapon(ABaseWeapon* Weapon)
+{
+	if (Weapon)
+	{
+		MainWeapon = Weapon;
+		Weapon->SetOwner(this);
+	}
 }
 
 void AFremenCharacter::MoveForward(float AxisValue)
@@ -112,14 +124,37 @@ void AFremenCharacter::LookRight(float AxisValue)
 
 void AFremenCharacter::ToggleWeapon()
 {
+	if(GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, FString::Printf(TEXT("Action: ToggleWeapon")));
+	
 	if (MainWeapon)
 	{
 		if (UAnimMontage* Montage = MainWeapon->IsWeaponInHande() ? SheatheWeaponMontage : DrawWeaponMontage)
 		{
 			PlayAnimMontage(Montage);
-			
+		}
+	}
+}
+
+void AFremenCharacter::Interact()
+{
+	if(GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, FString::Printf(TEXT("Action: Interact")));
+
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypesArray;
+	ObjectTypesArray.Init(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_GameTraceChannel1), 1);
+
+	TArray<AActor*> OutArray;
+	TArray<AActor*> IgnoreActors;
+	IgnoreActors.Init(MainWeapon, 1);
+	
+	if (UKismetSystemLibrary::SphereOverlapActors(GetWorld(), GetActorLocation(), 500.f, ObjectTypesArray, nullptr, IgnoreActors, OutArray))
+	{
+		if (IInteractable* Item = Cast<IInteractable>(OutArray[0]))
+		{
+			Item->Interact(this);
 			if(GEngine)
-				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, FString::Printf(TEXT("ToggleWeapon")));
+				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, FString::Printf(TEXT("Interact with %s"), *OutArray[0]->GetName()));
 		}
 	}
 }
