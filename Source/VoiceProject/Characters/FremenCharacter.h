@@ -47,6 +47,7 @@ public:
 	UAnimMontage* SheatheWeaponMontage;
 
 	ABaseWeapon& GetMainWeapon() const;
+	
 private:
 	ABaseWeapon* MainWeapon;
 };
