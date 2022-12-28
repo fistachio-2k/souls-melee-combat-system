@@ -76,3 +76,6 @@ DerivedDataCache/*
 
 # Exclude rider idea data
 .idea
+
+# Exclude rider link plugin
+Plugins/Developer/RiderLink/*
