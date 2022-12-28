@@ -4,11 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "Equippable.h"
+#include "Interactable.h"
 #include "GameFramework/Actor.h"
 #include "BaseWeapon.generated.h"
 
 UCLASS()
-class VOICEPROJECT_API ABaseWeapon : public AActor, public IEquippable
+class VOICEPROJECT_API ABaseWeapon : public AActor, public IEquippable, public IInteractable
 {
 	GENERATED_BODY()
 	
@@ -23,6 +24,7 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	virtual void Interact(AActor* Caller) override;
 	virtual void OnEquipped() override;
 	virtual void OnUnequipped() override;
 	virtual void AttachActor(FName SocketNameToAttach) override;

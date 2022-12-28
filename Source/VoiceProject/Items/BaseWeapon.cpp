@@ -3,6 +3,7 @@
 
 #include "BaseWeapon.h"
 #include "GameFramework/Character.h"
+#include "VoiceProject/Characters/FremenCharacter.h"
 
 // Sets default values
 ABaseWeapon::ABaseWeapon()
@@ -29,9 +30,17 @@ void ABaseWeapon::Tick(float DeltaTime)
 
 }
 
+void ABaseWeapon::Interact(AActor* Caller)
+{
+	if (AFremenCharacter* Character = Cast<AFremenCharacter>(Caller))
+	{
+		Character->SetMainWeapon(this);
+		OnEquipped();
+	}
+}
+
 void ABaseWeapon::OnEquipped()
 {
-	// IEquippable::Execute_OnEquipped(this);
 	AttachActor(HeapSocketName);
 }
 
