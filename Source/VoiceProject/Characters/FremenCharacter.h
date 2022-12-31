@@ -52,5 +52,8 @@ public:
 	void SetMainWeapon(ABaseWeapon* Weapon);
 	
 private:
+	bool bIsCombatEnabled;
 	ABaseWeapon* MainWeapon;
+
+	void SetCombatEnabled(bool IsCombatEnabled);
 };

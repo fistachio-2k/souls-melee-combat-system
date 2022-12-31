@@ -71,7 +71,7 @@ UPrimitiveComponent* ABaseWeapon::GetItemMesh()
 	return MeshComponent;
 }
 
-bool ABaseWeapon::IsWeaponInHande() const
+bool ABaseWeapon::IsWeaponInHand() const
 {
 	return bIsHandEquipped;
 }

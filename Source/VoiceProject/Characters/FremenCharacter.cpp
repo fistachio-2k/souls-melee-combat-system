@@ -2,6 +2,8 @@
 
 
 #include "FremenCharacter.h"
+
+#include "FremenAnimInstance.h"
 #include "VoiceProject/Items/BaseWeapon.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -88,6 +90,15 @@ void AFremenCharacter::SetMainWeapon(ABaseWeapon* Weapon)
 	}
 }
 
+void AFremenCharacter::SetCombatEnabled(bool IsCombatEnabled)
+{
+	bIsCombatEnabled = IsCombatEnabled;
+	if (auto const AnimInstance = Cast<UFremenAnimInstance>(GetMesh()->GetAnimInstance()))
+	{
+		AnimInstance->UpdateIsCombatEnabled(IsCombatEnabled);
+	}
+}
+
 void AFremenCharacter::MoveForward(float AxisValue)
 {
 	if ((Controller != nullptr) && (AxisValue != 0.0f))
@@ -134,10 +145,12 @@ void AFremenCharacter::ToggleWeapon()
 	
 	if (MainWeapon)
 	{
-		if (UAnimMontage* Montage = MainWeapon->IsWeaponInHande() ? SheatheWeaponMontage : DrawWeaponMontage)
+		if (UAnimMontage* Montage = MainWeapon->IsWeaponInHand() ? SheatheWeaponMontage : DrawWeaponMontage)
 		{
 			PlayAnimMontage(Montage);
 		}
+		
+		SetCombatEnabled(!bIsCombatEnabled);
 	}
 }
 
