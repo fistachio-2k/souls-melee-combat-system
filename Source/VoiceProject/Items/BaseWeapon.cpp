@@ -41,12 +41,13 @@ void ABaseWeapon::Interact(AActor* Caller)
 
 void ABaseWeapon::OnEquipped()
 {
+	IEquippable::OnEquipped();
 	AttachActor(HeapSocketName);
 }
 
 void ABaseWeapon::OnUnequipped()
 {
-	// Super::OnUnequipped();
+	IEquippable::OnUnequipped();
 }
 
 void ABaseWeapon::AttachActor(FName SocketNameToAttach)

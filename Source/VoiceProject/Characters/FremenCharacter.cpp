@@ -38,11 +38,10 @@ void AFremenCharacter::BeginPlay()
 			
 			SpawnParameters.Owner = this;
 			SpawnParameters.Instigator = this;
-			MainWeapon = World->SpawnActor<ABaseWeapon>(WeaponClass, GetActorTransform(), SpawnParameters);
-			
-			if (MainWeapon)
+
+			if (ABaseWeapon* Weapon = World->SpawnActor<ABaseWeapon>(WeaponClass, GetActorTransform(), SpawnParameters))
 			{
-				MainWeapon->OnEquipped();
+				SetMainWeapon(Weapon);
 			}
 		}
 	}
@@ -78,8 +77,14 @@ void AFremenCharacter::SetMainWeapon(ABaseWeapon* Weapon)
 {
 	if (Weapon)
 	{
+		if (MainWeapon)
+		{
+			MainWeapon->OnUnequipped();
+		}
+		
 		MainWeapon = Weapon;
 		Weapon->SetOwner(this);
+		MainWeapon->OnEquipped();
 	}
 }
 
