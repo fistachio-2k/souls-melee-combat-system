@@ -15,7 +15,7 @@ void UEquipAnimNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBas
 		if (const AFremenCharacter* Character = Cast<AFremenCharacter>(Owner))
 		{
 			ABaseWeapon& Weapon = Character->GetMainWeapon();
-			Weapon.AttachActor(Weapon.IsWeaponInHande() ? Weapon.HeapSocketName : Weapon.HandSocketName);
+			Weapon.AttachActor(Weapon.IsWeaponInHand() ? Weapon.HeapSocketName : Weapon.HandSocketName);
 		}
 	}
 }
