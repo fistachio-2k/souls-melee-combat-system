@@ -31,6 +31,7 @@ public:
 	void LookRight(float AxisValue);
 	
 	void ToggleWeapon();
+	void Interact();
 	
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -47,6 +48,12 @@ public:
 	UAnimMontage* SheatheWeaponMontage;
 
 	ABaseWeapon& GetMainWeapon() const;
+
+	void SetMainWeapon(ABaseWeapon* Weapon);
+	
 private:
+	bool bIsCombatEnabled;
 	ABaseWeapon* MainWeapon;
+
+	void SetCombatEnabled(bool IsCombatEnabled);
 };

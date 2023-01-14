@@ -3,6 +3,7 @@
 
 #include "BaseWeapon.h"
 #include "GameFramework/Character.h"
+#include "VoiceProject/Characters/FremenCharacter.h"
 
 // Sets default values
 ABaseWeapon::ABaseWeapon()
@@ -29,15 +30,24 @@ void ABaseWeapon::Tick(float DeltaTime)
 
 }
 
+void ABaseWeapon::Interact(AActor* Caller)
+{
+	if (AFremenCharacter* Character = Cast<AFremenCharacter>(Caller))
+	{
+		Character->SetMainWeapon(this);
+		OnEquipped();
+	}
+}
+
 void ABaseWeapon::OnEquipped()
 {
-	// IEquippable::Execute_OnEquipped(this);
+	IEquippable::OnEquipped();
 	AttachActor(HeapSocketName);
 }
 
 void ABaseWeapon::OnUnequipped()
 {
-	// Super::OnUnequipped();
+	IEquippable::OnUnequipped();
 }
 
 void ABaseWeapon::AttachActor(FName SocketNameToAttach)
@@ -61,7 +71,7 @@ UPrimitiveComponent* ABaseWeapon::GetItemMesh()
 	return MeshComponent;
 }
 
-bool ABaseWeapon::IsWeaponInHande() const
+bool ABaseWeapon::IsWeaponInHand() const
 {
 	return bIsHandEquipped;
 }

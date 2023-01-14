@@ -2,8 +2,12 @@
 
 
 #include "FremenCharacter.h"
+
+#include "FremenAnimInstance.h"
 #include "VoiceProject/Items/BaseWeapon.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "VoiceProject/Items/Interactable.h"
 
 // Sets default values
 AFremenCharacter::AFremenCharacter()
@@ -36,11 +40,10 @@ void AFremenCharacter::BeginPlay()
 			
 			SpawnParameters.Owner = this;
 			SpawnParameters.Instigator = this;
-			MainWeapon = World->SpawnActor<ABaseWeapon>(WeaponClass, GetActorTransform(), SpawnParameters);
-			
-			if (MainWeapon)
+
+			if (ABaseWeapon* Weapon = World->SpawnActor<ABaseWeapon>(WeaponClass, GetActorTransform(), SpawnParameters))
 			{
-				MainWeapon->OnEquipped();
+				SetMainWeapon(Weapon);
 			}
 		}
 	}
@@ -64,11 +67,36 @@ void AFremenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
     PlayerInputComponent->BindAxis(TEXT("LookRight"), this, &AFremenCharacter::LookRight);
 
 	PlayerInputComponent->BindAction(TEXT("ToggleWeapon"), IE_Pressed, this, &AFremenCharacter::ToggleWeapon);
+	PlayerInputComponent->BindAction(TEXT("Interact"), IE_Pressed, this, &AFremenCharacter::Interact);
 }
 
 ABaseWeapon& AFremenCharacter::GetMainWeapon() const
 {
 	return *MainWeapon;
+}
+
+void AFremenCharacter::SetMainWeapon(ABaseWeapon* Weapon)
+{
+	if (Weapon)
+	{
+		if (MainWeapon)
+		{
+			MainWeapon->OnUnequipped();
+		}
+		
+		MainWeapon = Weapon;
+		Weapon->SetOwner(this);
+		MainWeapon->OnEquipped();
+	}
+}
+
+void AFremenCharacter::SetCombatEnabled(bool IsCombatEnabled)
+{
+	bIsCombatEnabled = IsCombatEnabled;
+	if (auto const AnimInstance = Cast<UFremenAnimInstance>(GetMesh()->GetAnimInstance()))
+	{
+		AnimInstance->UpdateIsCombatEnabled(IsCombatEnabled);
+	}
 }
 
 void AFremenCharacter::MoveForward(float AxisValue)
@@ -112,14 +140,39 @@ void AFremenCharacter::LookRight(float AxisValue)
 
 void AFremenCharacter::ToggleWeapon()
 {
+	if(GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, FString::Printf(TEXT("Action: ToggleWeapon")));
+	
 	if (MainWeapon)
 	{
-		if (UAnimMontage* Montage = MainWeapon->IsWeaponInHande() ? SheatheWeaponMontage : DrawWeaponMontage)
+		if (UAnimMontage* Montage = MainWeapon->IsWeaponInHand() ? SheatheWeaponMontage : DrawWeaponMontage)
 		{
 			PlayAnimMontage(Montage);
-			
+		}
+		
+		SetCombatEnabled(!bIsCombatEnabled);
+	}
+}
+
+void AFremenCharacter::Interact()
+{
+	if(GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, FString::Printf(TEXT("Action: Interact")));
+
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypesArray;
+	ObjectTypesArray.Init(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_GameTraceChannel1), 1);
+
+	TArray<AActor*> OutArray;
+	TArray<AActor*> IgnoreActors;
+	IgnoreActors.Init(MainWeapon, 1);
+	
+	if (UKismetSystemLibrary::SphereOverlapActors(GetWorld(), GetActorLocation(), 500.f, ObjectTypesArray, nullptr, IgnoreActors, OutArray))
+	{
+		if (IInteractable* Item = Cast<IInteractable>(OutArray[0]))
+		{
+			Item->Interact(this);
 			if(GEngine)
-				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, FString::Printf(TEXT("ToggleWeapon")));
+				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, FString::Printf(TEXT("Interact with %s"), *OutArray[0]->GetName()));
 		}
 	}
 }
