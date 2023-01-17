@@ -4,6 +4,7 @@
 #include "EquipAnimNotify.h"
 
 #include "VoiceProject/Characters/FremenCharacter.h"
+#include "VoiceProject/Components/CombatComponent.h"
 #include "VoiceProject/Items/BaseWeapon.h"
 
 void UEquipAnimNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
@@ -14,8 +15,15 @@ void UEquipAnimNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBas
 	{
 		if (const AFremenCharacter* Character = Cast<AFremenCharacter>(Owner))
 		{
-			ABaseWeapon& Weapon = Character->GetMainWeapon();
-			Weapon.AttachActor(Weapon.IsWeaponInHand() ? Weapon.HeapSocketName : Weapon.HandSocketName);
+			// TODO: Consider make a getter for the CombatComponent to avoid casting
+			ABaseWeapon* Weapon = nullptr;
+			UActorComponent* ActorComponent = Character->GetComponentByClass(TSubclassOf<UCombatComponent>());
+			if (const UCombatComponent* CombatComponent = Cast<UCombatComponent>(ActorComponent))
+			{
+				Weapon = CombatComponent->GetMainWeapon();
+			}
+			
+			Weapon->AttachActor(Weapon->IsWeaponInHand() ? Weapon->HeapSocketName : Weapon->HandSocketName);
 		}
 	}
 }

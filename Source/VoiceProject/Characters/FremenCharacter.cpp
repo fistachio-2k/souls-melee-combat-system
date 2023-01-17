@@ -7,6 +7,7 @@
 #include "VoiceProject/Items/BaseWeapon.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "VoiceProject/Components/CombatComponent.h"
 #include "VoiceProject/Items/Interactable.h"
 
 // Sets default values
@@ -24,6 +25,8 @@ AFremenCharacter::AFremenCharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
 
+	CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
+	AddOwnedComponent(CombatComponent);
 }
 
 // Called when the game starts or when spawned
@@ -43,7 +46,7 @@ void AFremenCharacter::BeginPlay()
 
 			if (ABaseWeapon* Weapon = World->SpawnActor<ABaseWeapon>(WeaponClass, GetActorTransform(), SpawnParameters))
 			{
-				SetMainWeapon(Weapon);
+				CombatComponent->SetMainWeapon(Weapon);
 			}
 		}
 	}
@@ -68,26 +71,6 @@ void AFremenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	PlayerInputComponent->BindAction(TEXT("ToggleWeapon"), IE_Pressed, this, &AFremenCharacter::ToggleWeapon);
 	PlayerInputComponent->BindAction(TEXT("Interact"), IE_Pressed, this, &AFremenCharacter::Interact);
-}
-
-ABaseWeapon& AFremenCharacter::GetMainWeapon() const
-{
-	return *MainWeapon;
-}
-
-void AFremenCharacter::SetMainWeapon(ABaseWeapon* Weapon)
-{
-	if (Weapon)
-	{
-		if (MainWeapon)
-		{
-			MainWeapon->OnUnequipped();
-		}
-		
-		MainWeapon = Weapon;
-		Weapon->SetOwner(this);
-		MainWeapon->OnEquipped();
-	}
 }
 
 void AFremenCharacter::SetCombatEnabled(bool IsCombatEnabled)
@@ -143,14 +126,12 @@ void AFremenCharacter::ToggleWeapon()
 	if(GEngine)
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, FString::Printf(TEXT("Action: ToggleWeapon")));
 	
-	if (MainWeapon)
+	if (ABaseWeapon* MainWeapon = CombatComponent->GetMainWeapon())
 	{
-		if (UAnimMontage* Montage = MainWeapon->IsWeaponInHand() ? SheatheWeaponMontage : DrawWeaponMontage)
+		if (UAnimMontage* Montage = CombatComponent->IsCombatEnabled() ? MainWeapon->SheatheWeaponMontage : MainWeapon->DrawWeaponMontage)
 		{
 			PlayAnimMontage(Montage);
 		}
-		
-		SetCombatEnabled(!bIsCombatEnabled);
 	}
 }
 
@@ -164,7 +145,7 @@ void AFremenCharacter::Interact()
 
 	TArray<AActor*> OutArray;
 	TArray<AActor*> IgnoreActors;
-	IgnoreActors.Init(MainWeapon, 1);
+	IgnoreActors.Init(this, 1);
 	
 	if (UKismetSystemLibrary::SphereOverlapActors(GetWorld(), GetActorLocation(), 500.f, ObjectTypesArray, nullptr, IgnoreActors, OutArray))
 	{

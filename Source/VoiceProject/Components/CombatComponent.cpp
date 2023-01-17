@@ -41,6 +41,17 @@ ABaseWeapon* UCombatComponent::GetMainWeapon() const
 
 void UCombatComponent::SetMainWeapon(ABaseWeapon* NewWeapon)
 {
+	if (NewWeapon)
+	{
+		if (MainWeapon)
+		{
+			MainWeapon->OnUnequipped();
+		}
+		
+		MainWeapon = NewWeapon;
+		NewWeapon->SetOwner(GetOwner());
+		MainWeapon->OnEquipped();
+	}
 }
 
 bool UCombatComponent::IsCombatEnabled() const

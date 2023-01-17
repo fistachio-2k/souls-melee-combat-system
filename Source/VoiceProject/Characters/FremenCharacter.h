@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "FremenCharacter.generated.h"
 
+class UCombatComponent;
 class ABaseWeapon;
 
 UCLASS()
@@ -41,19 +42,8 @@ public:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<ABaseWeapon> WeaponClass;
 
-	UPROPERTY(EditAnywhere)
-	UAnimMontage* DrawWeaponMontage;
-
-	UPROPERTY(EditAnywhere)
-	UAnimMontage* SheatheWeaponMontage;
-
-	ABaseWeapon& GetMainWeapon() const;
-
-	void SetMainWeapon(ABaseWeapon* Weapon);
-	
 private:
 	bool bIsCombatEnabled;
-	ABaseWeapon* MainWeapon;
-
+	UCombatComponent* CombatComponent;
 	void SetCombatEnabled(bool IsCombatEnabled);
 };

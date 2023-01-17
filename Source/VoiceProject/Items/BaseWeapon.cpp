@@ -4,6 +4,7 @@
 #include "BaseWeapon.h"
 #include "GameFramework/Character.h"
 #include "VoiceProject/Characters/FremenCharacter.h"
+#include "VoiceProject/Components/CombatComponent.h"
 
 // Sets default values
 ABaseWeapon::ABaseWeapon()
@@ -32,9 +33,15 @@ void ABaseWeapon::Tick(float DeltaTime)
 
 void ABaseWeapon::Interact(AActor* Caller)
 {
-	if (AFremenCharacter* Character = Cast<AFremenCharacter>(Caller))
+	if (const AFremenCharacter* Character = Cast<AFremenCharacter>(Caller))
 	{
-		Character->SetMainWeapon(this);
+		// TODO: Consider make a getter for the CombatComponent to avoid casting
+		UActorComponent* ActorComponent = Character->GetComponentByClass(TSubclassOf<UCombatComponent>());
+		if (UCombatComponent* CombatComponent = Cast<UCombatComponent>(ActorComponent))
+		{
+			CombatComponent->SetMainWeapon(this);
+		}
+		
 		OnEquipped();
 	}
 }
