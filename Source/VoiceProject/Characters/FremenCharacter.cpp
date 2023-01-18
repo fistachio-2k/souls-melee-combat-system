@@ -126,7 +126,7 @@ void AFremenCharacter::ToggleWeapon()
 	if(GEngine)
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, FString::Printf(TEXT("Action: ToggleWeapon")));
 	
-	if (ABaseWeapon* MainWeapon = CombatComponent->GetMainWeapon())
+	if (const ABaseWeapon* MainWeapon = CombatComponent->GetMainWeapon())
 	{
 		if (UAnimMontage* Montage = CombatComponent->IsCombatEnabled() ? MainWeapon->SheatheWeaponMontage : MainWeapon->DrawWeaponMontage)
 		{

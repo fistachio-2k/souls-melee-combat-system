@@ -36,13 +36,11 @@ void ABaseWeapon::Interact(AActor* Caller)
 	if (const AFremenCharacter* Character = Cast<AFremenCharacter>(Caller))
 	{
 		// TODO: Consider make a getter for the CombatComponent to avoid casting
-		UActorComponent* ActorComponent = Character->GetComponentByClass(TSubclassOf<UCombatComponent>());
+		UActorComponent* ActorComponent = Character->GetComponentByClass(UCombatComponent::StaticClass());
 		if (UCombatComponent* CombatComponent = Cast<UCombatComponent>(ActorComponent))
 		{
 			CombatComponent->SetMainWeapon(this);
 		}
-		
-		OnEquipped();
 	}
 }
 

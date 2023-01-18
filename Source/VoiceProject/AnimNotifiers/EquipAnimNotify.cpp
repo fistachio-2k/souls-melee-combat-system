@@ -17,13 +17,14 @@ void UEquipAnimNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBas
 		{
 			// TODO: Consider make a getter for the CombatComponent to avoid casting
 			ABaseWeapon* Weapon = nullptr;
-			UActorComponent* ActorComponent = Character->GetComponentByClass(TSubclassOf<UCombatComponent>());
-			if (const UCombatComponent* CombatComponent = Cast<UCombatComponent>(ActorComponent))
+			UActorComponent* ActorComponent = Character->GetComponentByClass(UCombatComponent::StaticClass());
+			if (UCombatComponent* CombatComponent = Cast<UCombatComponent>(ActorComponent))
 			{
 				Weapon = CombatComponent->GetMainWeapon();
+				Weapon->AttachActor(Weapon->IsWeaponInHand() ? Weapon->HeapSocketName : Weapon->HandSocketName);
+				CombatComponent->SetCombatEnabled(Weapon->IsWeaponInHand()); //In hand means in combat
 			}
 			
-			Weapon->AttachActor(Weapon->IsWeaponInHand() ? Weapon->HeapSocketName : Weapon->HandSocketName);
 		}
 	}
 }

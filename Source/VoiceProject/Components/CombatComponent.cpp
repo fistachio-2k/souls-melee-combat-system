@@ -3,6 +3,9 @@
 
 #include "CombatComponent.h"
 
+#include "VoiceProject/Characters/FremenAnimInstance.h"
+#include "VoiceProject/Characters/FremenCharacter.h"
+
 
 // Sets default values for this component's properties
 UCombatComponent::UCombatComponent()
@@ -61,5 +64,13 @@ bool UCombatComponent::IsCombatEnabled() const
 
 void UCombatComponent::SetCombatEnabled(bool IsCombatEnabled)
 {
+		if (const AFremenCharacter* Character = Cast<AFremenCharacter>(GetOwner()))
+		{
+			UAnimInstance* AnimInstance= Character->GetMesh()->GetAnimInstance();
+			if (UFremenAnimInstance* FremenAnimInstance = Cast<UFremenAnimInstance>(AnimInstance))
+			{
+				FremenAnimInstance->UpdateIsCombatEnabled(IsCombatEnabled);
+			}
+		}
 }
 
