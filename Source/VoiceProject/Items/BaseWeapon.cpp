@@ -5,6 +5,7 @@
 #include "GameFramework/Character.h"
 #include "VoiceProject/Characters/FremenCharacter.h"
 #include "VoiceProject/Components/CombatComponent.h"
+#include "VoiceProject/Utils/Logger.h"
 
 // Sets default values
 ABaseWeapon::ABaseWeapon()
@@ -60,11 +61,7 @@ void ABaseWeapon::AttachActor(FName SocketNameToAttach)
 	auto Character = Cast<ACharacter>(GetOwner());
 	if (Character == nullptr)
 	{
-		UE_LOG(LogTemp,
-			Warning,
-			TEXT("Can't attach %s, owner cast to character failed."),
-			*this->GetName());
-		
+		Logger::Log(ELogLevel::WARNING, FString::Printf(TEXT("Can't attach %s, owner cast to character failed."), *this->GetName()));
 		return;
 	}
 	bIsHandEquipped = SocketNameToAttach == HandSocketName;

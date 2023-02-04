@@ -9,6 +9,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "VoiceProject/Components/CombatComponent.h"
 #include "VoiceProject/Items/Interactable.h"
+#include "VoiceProject/Utils/Logger.h"
 
 // Sets default values
 AFremenCharacter::AFremenCharacter()
@@ -123,9 +124,7 @@ void AFremenCharacter::LookRight(float AxisValue)
 
 void AFremenCharacter::ToggleWeapon()
 {
-	if(GEngine)
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, FString::Printf(TEXT("Action: ToggleWeapon")));
-	
+	Logger::Log(ELogLevel::INFO, __FUNCTION__);
 	if (const ABaseWeapon* MainWeapon = CombatComponent->GetMainWeapon())
 	{
 		if (UAnimMontage* Montage = CombatComponent->IsCombatEnabled() ? MainWeapon->SheatheWeaponMontage : MainWeapon->DrawWeaponMontage)
@@ -137,9 +136,7 @@ void AFremenCharacter::ToggleWeapon()
 
 void AFremenCharacter::Interact()
 {
-	if(GEngine)
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, FString::Printf(TEXT("Action: Interact")));
-
+	Logger::Log(ELogLevel::INFO, __FUNCTION__);
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypesArray;
 	ObjectTypesArray.Init(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_GameTraceChannel1), 1);
 
@@ -152,8 +149,7 @@ void AFremenCharacter::Interact()
 		if (IInteractable* Item = Cast<IInteractable>(OutArray[0]))
 		{
 			Item->Interact(this);
-			if(GEngine)
-				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, FString::Printf(TEXT("Interact with %s"), *OutArray[0]->GetName()));
+			Logger::Log(ELogLevel::INFO, FString::Printf(TEXT("Interact with %s"), *OutArray[0]->GetName()));
 		}
 	}
 }
