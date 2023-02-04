@@ -30,20 +30,23 @@ public:
 	virtual void AttachActor(FName SocketNameToAttach) override;
 	virtual UPrimitiveComponent* GetItemMesh() override;
 	bool IsWeaponInHand() const;
-
-	UPROPERTY(EditAnywhere)
-	UAnimMontage* DrawWeaponMontage;
-
-	UPROPERTY(EditAnywhere)
-	UAnimMontage* SheatheWeaponMontage;
 	
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* MeshComponent;
+
+	UPROPERTY(EditAnywhere, Category = "Animation")
+	UAnimMontage* DrawWeaponMontage;
 	
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Animation")
+	UAnimMontage* SheatheWeaponMontage;
+	
+	UPROPERTY(EditAnywhere, Category = "Animation")
+	TArray<UAnimMontage*> AttackMontages;
+	
+	UPROPERTY(EditAnywhere, Category = "Animation")
 	FName HeapSocketName;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Animation")
 	FName HandSocketName;
 
 private:

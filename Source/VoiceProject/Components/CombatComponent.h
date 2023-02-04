@@ -30,8 +30,14 @@ public:
 	void SetMainWeapon(ABaseWeapon* NewWeapon);
 	bool IsCombatEnabled() const;
 	void SetCombatEnabled(bool IsCombatEnabled);
+	void ResetCombat();
 
 private:
 	ABaseWeapon* MainWeapon;
 	bool bIsCombatEnabled;
+	bool bIsAttacking;
+	bool bIsAttackSaved;
+	uint8 AttackCount;
+	
+	
 };
