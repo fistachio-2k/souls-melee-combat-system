@@ -135,11 +135,6 @@ void AFremenCharacter::ToggleWeapon()
 	}
 }
 
-void AFremenCharacter::Attack()
-{
-	Logger::Log(ELogLevel::INFO, __FUNCTION__);
-}
-
 void AFremenCharacter::Interact()
 {
 	Logger::Log(ELogLevel::INFO, __FUNCTION__);
@@ -160,11 +155,47 @@ void AFremenCharacter::Interact()
 	}
 }
 
+
+void AFremenCharacter::Attack()
+{
+	Logger::Log(ELogLevel::INFO, __FUNCTION__);
+	if (CombatComponent->bIsAttacking)
+	{
+		CombatComponent->bIsAttackSaved = true;
+	}
+	else
+	{
+		if (true /* Check NOT toggling weapon here */)
+		{
+			PerformAttack(1, false);
+		}
+	}
+}
+
 void AFremenCharacter::AttackContinue()
 {
 }
 
 void AFremenCharacter::AttackReset()
 {
+}
+
+void AFremenCharacter::PerformAttack(unsigned int AttackIndex, bool IsRandom)
+{
+	if (!CombatComponent)
+	{
+		return;
+	}
+	
+	TArray<UAnimMontage*>& MontagesArray = CombatComponent->GetMainWeapon()->AttackMontages;
+	int Index = IsRandom ? FMath::RandRange(0, MontagesArray.Num()) : AttackIndex;
+
+	if (Index < MontagesArray.Num())
+	{
+		UAnimMontage* Montage = MontagesArray[Index];
+		CombatComponent->bIsAttacking = true;
+		PlayAnimMontage(Montage);
+	}
+	
 }
 

@@ -32,12 +32,13 @@ public:
 	void SetCombatEnabled(bool IsCombatEnabled);
 	void ResetCombat();
 
-private:
-	ABaseWeapon* MainWeapon;
-	bool bIsCombatEnabled;
 	bool bIsAttacking;
 	bool bIsAttackSaved;
 	uint8 AttackCount;
+	
+private:
+	ABaseWeapon* MainWeapon;
+	bool bIsCombatEnabled;
 	
 	
 };
