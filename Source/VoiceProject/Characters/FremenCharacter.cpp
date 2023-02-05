@@ -167,17 +167,32 @@ void AFremenCharacter::Attack()
 	{
 		if (true /* Check NOT toggling weapon here */)
 		{
-			PerformAttack(1, false);
+			PerformAttack(CombatComponent->AttackCount, false);
 		}
 	}
 }
 
 void AFremenCharacter::AttackContinue()
 {
+	if (!CombatComponent)
+	{
+		return;
+	}
+
+	CombatComponent->bIsAttacking = false;
+	if (CombatComponent->bIsAttackSaved)
+	{
+		CombatComponent->bIsAttackSaved = false;
+		if (true /* Check NOT toggling weapon here */)
+		{
+			PerformAttack(CombatComponent->AttackCount);
+		}
+	}
 }
 
 void AFremenCharacter::AttackReset()
 {
+	CombatComponent->ResetCombat();
 }
 
 void AFremenCharacter::PerformAttack(unsigned int AttackIndex, bool IsRandom)
@@ -196,6 +211,5 @@ void AFremenCharacter::PerformAttack(unsigned int AttackIndex, bool IsRandom)
 		CombatComponent->bIsAttacking = true;
 		PlayAnimMontage(Montage);
 	}
-	
 }
 
