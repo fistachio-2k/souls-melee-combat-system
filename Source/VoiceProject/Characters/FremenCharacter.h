@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Combatable.h"
 #include "GameFramework/Character.h"
 #include "FremenCharacter.generated.h"
 
@@ -10,7 +11,7 @@ class UCombatComponent;
 class ABaseWeapon;
 
 UCLASS()
-class VOICEPROJECT_API AFremenCharacter : public ACharacter
+class VOICEPROJECT_API AFremenCharacter : public ACharacter, public ICombatable
 {
 	GENERATED_BODY()
 
@@ -33,6 +34,10 @@ public:
 	
 	void ToggleWeapon();
 	void Interact();
+	
+	virtual void Attack() override;
+	virtual void AttackContinue() override;
+	virtual void AttackReset() override;
 	
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;

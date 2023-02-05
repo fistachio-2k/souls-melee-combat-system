@@ -71,6 +71,7 @@ void AFremenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
     PlayerInputComponent->BindAxis(TEXT("LookRight"), this, &AFremenCharacter::LookRight);
 
 	PlayerInputComponent->BindAction(TEXT("ToggleWeapon"), IE_Pressed, this, &AFremenCharacter::ToggleWeapon);
+	PlayerInputComponent->BindAction(TEXT("Attack"), IE_Pressed, this, &AFremenCharacter::Attack);
 	PlayerInputComponent->BindAction(TEXT("Interact"), IE_Pressed, this, &AFremenCharacter::Interact);
 }
 
@@ -134,6 +135,11 @@ void AFremenCharacter::ToggleWeapon()
 	}
 }
 
+void AFremenCharacter::Attack()
+{
+	Logger::Log(ELogLevel::INFO, __FUNCTION__);
+}
+
 void AFremenCharacter::Interact()
 {
 	Logger::Log(ELogLevel::INFO, __FUNCTION__);
@@ -152,5 +158,13 @@ void AFremenCharacter::Interact()
 			Logger::Log(ELogLevel::INFO, FString::Printf(TEXT("Interact with %s"), *OutArray[0]->GetName()));
 		}
 	}
+}
+
+void AFremenCharacter::AttackContinue()
+{
+}
+
+void AFremenCharacter::AttackReset()
+{
 }
 
