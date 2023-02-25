@@ -7,7 +7,9 @@
 #include "VoiceProject/Items/BaseWeapon.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "VoiceProject/Components/CombatComponent.h"
 #include "VoiceProject/Items/Interactable.h"
+#include "VoiceProject/Utils/Logger.h"
 
 // Sets default values
 AFremenCharacter::AFremenCharacter()
@@ -24,6 +26,8 @@ AFremenCharacter::AFremenCharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
 
+	CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
+	AddOwnedComponent(CombatComponent);
 }
 
 // Called when the game starts or when spawned
@@ -43,7 +47,7 @@ void AFremenCharacter::BeginPlay()
 
 			if (ABaseWeapon* Weapon = World->SpawnActor<ABaseWeapon>(WeaponClass, GetActorTransform(), SpawnParameters))
 			{
-				SetMainWeapon(Weapon);
+				CombatComponent->SetMainWeapon(Weapon);
 			}
 		}
 	}
@@ -67,27 +71,8 @@ void AFremenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
     PlayerInputComponent->BindAxis(TEXT("LookRight"), this, &AFremenCharacter::LookRight);
 
 	PlayerInputComponent->BindAction(TEXT("ToggleWeapon"), IE_Pressed, this, &AFremenCharacter::ToggleWeapon);
+	PlayerInputComponent->BindAction(TEXT("Attack"), IE_Pressed, this, &AFremenCharacter::Attack);
 	PlayerInputComponent->BindAction(TEXT("Interact"), IE_Pressed, this, &AFremenCharacter::Interact);
-}
-
-ABaseWeapon& AFremenCharacter::GetMainWeapon() const
-{
-	return *MainWeapon;
-}
-
-void AFremenCharacter::SetMainWeapon(ABaseWeapon* Weapon)
-{
-	if (Weapon)
-	{
-		if (MainWeapon)
-		{
-			MainWeapon->OnUnequipped();
-		}
-		
-		MainWeapon = Weapon;
-		Weapon->SetOwner(this);
-		MainWeapon->OnEquipped();
-	}
 }
 
 void AFremenCharacter::SetCombatEnabled(bool IsCombatEnabled)
@@ -140,40 +125,95 @@ void AFremenCharacter::LookRight(float AxisValue)
 
 void AFremenCharacter::ToggleWeapon()
 {
-	if(GEngine)
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, FString::Printf(TEXT("Action: ToggleWeapon")));
-	
-	if (MainWeapon)
+	Logger::Log(ELogLevel::INFO, __FUNCTION__);
+	if (const ABaseWeapon* MainWeapon = CombatComponent->GetMainWeapon())
 	{
-		if (UAnimMontage* Montage = MainWeapon->IsWeaponInHand() ? SheatheWeaponMontage : DrawWeaponMontage)
+		if (UAnimMontage* Montage = CombatComponent->IsCombatEnabled() ? MainWeapon->SheatheWeaponMontage : MainWeapon->DrawWeaponMontage)
 		{
+			Logger::Log(ELogLevel::INFO, FString::Printf(TEXT("play %s"), *Montage->GetName()));
+
 			PlayAnimMontage(Montage);
 		}
-		
-		SetCombatEnabled(!bIsCombatEnabled);
 	}
 }
 
 void AFremenCharacter::Interact()
 {
-	if(GEngine)
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, FString::Printf(TEXT("Action: Interact")));
-
+	Logger::Log(ELogLevel::INFO, __FUNCTION__);
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypesArray;
 	ObjectTypesArray.Init(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_GameTraceChannel1), 1);
 
 	TArray<AActor*> OutArray;
 	TArray<AActor*> IgnoreActors;
-	IgnoreActors.Init(MainWeapon, 1);
+	IgnoreActors.Init(this, 1);
 	
 	if (UKismetSystemLibrary::SphereOverlapActors(GetWorld(), GetActorLocation(), 500.f, ObjectTypesArray, nullptr, IgnoreActors, OutArray))
 	{
 		if (IInteractable* Item = Cast<IInteractable>(OutArray[0]))
 		{
 			Item->Interact(this);
-			if(GEngine)
-				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, FString::Printf(TEXT("Interact with %s"), *OutArray[0]->GetName()));
+			Logger::Log(ELogLevel::INFO, FString::Printf(TEXT("Interact with %s"), *OutArray[0]->GetName()));
 		}
+	}
+}
+
+
+void AFremenCharacter::Attack()
+{
+	Logger::Log(ELogLevel::INFO, __FUNCTION__);
+	if (CombatComponent->bIsAttacking)
+	{
+		CombatComponent->bIsAttackSaved = true;
+	}
+	else
+	{
+		if (true /* Check NOT toggling weapon here */)
+		{
+			PerformAttack(CombatComponent->AttackCount, false);
+		}
+	}
+}
+
+void AFremenCharacter::AttackContinue()
+{
+	if (!CombatComponent)
+	{
+		return;
+	}
+
+	CombatComponent->bIsAttacking = false;
+	if (CombatComponent->bIsAttackSaved)
+	{
+		CombatComponent->bIsAttackSaved = false;
+		if (true /* Check NOT toggling weapon here */)
+		{
+			PerformAttack(CombatComponent->AttackCount);
+		}
+	}
+}
+
+void AFremenCharacter::AttackReset()
+{
+	CombatComponent->ResetCombat();
+}
+
+void AFremenCharacter::PerformAttack(unsigned int AttackIndex, bool IsRandom)
+{
+	if (!CombatComponent || !CombatComponent->IsCombatEnabled())
+	{
+		return;
+	}
+	
+	TArray<UAnimMontage*>& MontagesArray = CombatComponent->GetMainWeapon()->AttackMontages;
+	int Index = IsRandom ? FMath::RandRange(0, MontagesArray.Num()) : AttackIndex;
+
+	if (Index < MontagesArray.Num())
+	{
+		UAnimMontage* Montage = MontagesArray[Index];
+		CombatComponent->bIsAttacking = true;
+		CombatComponent->AttackCount ++;
+		CombatComponent->AttackCount %= MontagesArray.Num();
+		PlayAnimMontage(Montage);
 	}
 }
 

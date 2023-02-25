@@ -3,13 +3,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Combatable.h"
 #include "GameFramework/Character.h"
 #include "FremenCharacter.generated.h"
 
+class UCombatComponent;
 class ABaseWeapon;
 
 UCLASS()
-class VOICEPROJECT_API AFremenCharacter : public ACharacter
+class VOICEPROJECT_API AFremenCharacter : public ACharacter, public ICombatable
 {
 	GENERATED_BODY()
 
@@ -32,6 +34,11 @@ public:
 	
 	void ToggleWeapon();
 	void Interact();
+
+	virtual void Attack() override;
+	virtual void AttackContinue() override;
+	virtual void AttackReset() override;
+	void PerformAttack(unsigned int AttackIndex, bool IsRandom = false);
 	
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -41,19 +48,8 @@ public:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<ABaseWeapon> WeaponClass;
 
-	UPROPERTY(EditAnywhere)
-	UAnimMontage* DrawWeaponMontage;
-
-	UPROPERTY(EditAnywhere)
-	UAnimMontage* SheatheWeaponMontage;
-
-	ABaseWeapon& GetMainWeapon() const;
-
-	void SetMainWeapon(ABaseWeapon* Weapon);
-	
 private:
 	bool bIsCombatEnabled;
-	ABaseWeapon* MainWeapon;
-
+	UCombatComponent* CombatComponent;
 	void SetCombatEnabled(bool IsCombatEnabled);
 };

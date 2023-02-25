@@ -4,6 +4,8 @@
 #include "BaseWeapon.h"
 #include "GameFramework/Character.h"
 #include "VoiceProject/Characters/FremenCharacter.h"
+#include "VoiceProject/Components/CombatComponent.h"
+#include "VoiceProject/Utils/Logger.h"
 
 // Sets default values
 ABaseWeapon::ABaseWeapon()
@@ -32,10 +34,14 @@ void ABaseWeapon::Tick(float DeltaTime)
 
 void ABaseWeapon::Interact(AActor* Caller)
 {
-	if (AFremenCharacter* Character = Cast<AFremenCharacter>(Caller))
+	if (const AFremenCharacter* Character = Cast<AFremenCharacter>(Caller))
 	{
-		Character->SetMainWeapon(this);
-		OnEquipped();
+		// TODO: Consider make a getter for the CombatComponent to avoid casting
+		UActorComponent* ActorComponent = Character->GetComponentByClass(UCombatComponent::StaticClass());
+		if (UCombatComponent* CombatComponent = Cast<UCombatComponent>(ActorComponent))
+		{
+			CombatComponent->SetMainWeapon(this);
+		}
 	}
 }
 
@@ -55,11 +61,7 @@ void ABaseWeapon::AttachActor(FName SocketNameToAttach)
 	auto Character = Cast<ACharacter>(GetOwner());
 	if (Character == nullptr)
 	{
-		UE_LOG(LogTemp,
-			Warning,
-			TEXT("Can't attach %s, owner cast to character failed."),
-			*this->GetName());
-		
+		Logger::Log(ELogLevel::WARNING, FString::Printf(TEXT("Can't attach %s, owner cast to character failed."), *this->GetName()));
 		return;
 	}
 	bIsHandEquipped = SocketNameToAttach == HandSocketName;

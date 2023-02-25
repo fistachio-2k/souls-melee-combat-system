@@ -4,16 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimNotifies/AnimNotify.h"
-#include "EquipAnimNotify.generated.h"
+#include "ResetAttackAnimNotify.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class VOICEPROJECT_API UEquipAnimNotify : public UAnimNotify
+class VOICEPROJECT_API UResetAttackAnimNotify : public UAnimNotify
 {
 	GENERATED_BODY()
-	
+
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
-	
 };
