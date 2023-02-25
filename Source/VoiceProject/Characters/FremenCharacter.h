@@ -34,12 +34,13 @@ public:
 	
 	void ToggleWeapon();
 	void Interact();
+	void Dodge();
 
 	virtual void Attack() override;
 	virtual void AttackContinue() override;
 	virtual void AttackReset() override;
 	void PerformAttack(unsigned int AttackIndex, bool IsRandom = false);
-	
+
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 

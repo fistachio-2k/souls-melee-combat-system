@@ -73,6 +73,7 @@ void AFremenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction(TEXT("ToggleWeapon"), IE_Pressed, this, &AFremenCharacter::ToggleWeapon);
 	PlayerInputComponent->BindAction(TEXT("Attack"), IE_Pressed, this, &AFremenCharacter::Attack);
 	PlayerInputComponent->BindAction(TEXT("Interact"), IE_Pressed, this, &AFremenCharacter::Interact);
+	PlayerInputComponent->BindAction(TEXT("Interact"), IE_Pressed, this, &AFremenCharacter::Dodge);
 }
 
 void AFremenCharacter::SetCombatEnabled(bool IsCombatEnabled)
@@ -155,6 +156,13 @@ void AFremenCharacter::Interact()
 			Logger::Log(ELogLevel::INFO, FString::Printf(TEXT("Interact with %s"), *OutArray[0]->GetName()));
 		}
 	}
+}
+
+void AFremenCharacter::Dodge()
+{
+	Logger::Log(ELogLevel::INFO, __FUNCTION__);
+	
+	// TODO: add logic here
 }
 
 
