@@ -66,10 +66,11 @@ void UCombatComponent::SetCombatEnabled(bool IsCombatEnabled)
 {
 		if (const AFremenCharacter* Character = Cast<AFremenCharacter>(GetOwner()))
 		{
-			UAnimInstance* AnimInstance= Character->GetMesh()->GetAnimInstance();
+			UAnimInstance* AnimInstance = Character->GetMesh()->GetAnimInstance();
 			if (UFremenAnimInstance* FremenAnimInstance = Cast<UFremenAnimInstance>(AnimInstance))
 			{
 				FremenAnimInstance->UpdateIsCombatEnabled(IsCombatEnabled);
+				bIsCombatEnabled = IsCombatEnabled;
 			}
 		}
 }

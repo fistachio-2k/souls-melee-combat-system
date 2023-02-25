@@ -39,6 +39,4 @@ public:
 private:
 	ABaseWeapon* MainWeapon;
 	bool bIsCombatEnabled;
-	
-	
 };

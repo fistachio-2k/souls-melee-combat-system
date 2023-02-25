@@ -130,6 +130,8 @@ void AFremenCharacter::ToggleWeapon()
 	{
 		if (UAnimMontage* Montage = CombatComponent->IsCombatEnabled() ? MainWeapon->SheatheWeaponMontage : MainWeapon->DrawWeaponMontage)
 		{
+			Logger::Log(ELogLevel::INFO, FString::Printf(TEXT("play %s"), *Montage->GetName()));
+
 			PlayAnimMontage(Montage);
 		}
 	}
@@ -197,7 +199,7 @@ void AFremenCharacter::AttackReset()
 
 void AFremenCharacter::PerformAttack(unsigned int AttackIndex, bool IsRandom)
 {
-	if (!CombatComponent)
+	if (!CombatComponent || !CombatComponent->IsCombatEnabled())
 	{
 		return;
 	}
@@ -209,6 +211,8 @@ void AFremenCharacter::PerformAttack(unsigned int AttackIndex, bool IsRandom)
 	{
 		UAnimMontage* Montage = MontagesArray[Index];
 		CombatComponent->bIsAttacking = true;
+		CombatComponent->AttackCount ++;
+		CombatComponent->AttackCount %= MontagesArray.Num();
 		PlayAnimMontage(Montage);
 	}
 }
