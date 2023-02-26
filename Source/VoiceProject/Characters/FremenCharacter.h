@@ -38,7 +38,7 @@ public:
 
 	virtual void Attack() override;
 	virtual void AttackContinue() override;
-	virtual void AttackReset() override;
+	virtual void ResetMovementState() override;
 	virtual FRotator GetSignificantInputRotation(float Threshold) override;
 	
 	void PerformAttack(unsigned int AttackIndex, bool IsRandom = false);

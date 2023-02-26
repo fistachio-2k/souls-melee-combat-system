@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "ResetAttackAnimNotify.h"
+#include "ResetMovementStateAnimNotify.h"
 #include "VoiceProject/Characters/FremenCharacter.h"
 
 void UResetAttackAnimNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
@@ -10,6 +10,6 @@ void UResetAttackAnimNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSeque
 	Super::Notify(MeshComp, Animation, EventReference);
 	if (AFremenCharacter* Fremen = Cast<AFremenCharacter>(MeshComp->GetOwner()))
 	{
-		Fremen->AttackReset();
+		Fremen->ResetMovementState();
 	}
 }

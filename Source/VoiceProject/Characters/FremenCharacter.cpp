@@ -118,6 +118,11 @@ void AFremenCharacter::LookRight(float AxisValue)
 void AFremenCharacter::ToggleWeapon()
 {
 	Logger::Log(ELogLevel::INFO, __FUNCTION__);
+	if (bIsDodging)
+	{
+		return;
+	}
+	
 	if (const ABaseWeapon* MainWeapon = CombatComponent->GetMainWeapon())
 	{
 		if (UAnimMontage* Montage = CombatComponent->IsCombatEnabled() ? MainWeapon->SheatheWeaponMontage : MainWeapon->DrawWeaponMontage)
@@ -165,16 +170,18 @@ void AFremenCharacter::Dodge()
 void AFremenCharacter::Attack()
 {
 	Logger::Log(ELogLevel::INFO, __FUNCTION__);
+	if (bIsDodging || (CombatComponent && !CombatComponent->IsCombatEnabled()))
+	{
+		return;
+	}
+	
 	if (CombatComponent->bIsAttacking)
 	{
 		CombatComponent->bIsAttackSaved = true;
 	}
 	else
 	{
-		if (true /* Check NOT toggling weapon here */)
-		{
-			PerformAttack(CombatComponent->AttackCount, false);
-		}
+		PerformAttack(CombatComponent->AttackCount, false);
 	}
 }
 
@@ -196,7 +203,7 @@ void AFremenCharacter::AttackContinue()
 	}
 }
 
-void AFremenCharacter::AttackReset()
+void AFremenCharacter::ResetMovementState()
 {
 	CombatComponent->ResetCombat();
 	bIsDodging = false;
@@ -215,11 +222,6 @@ FRotator AFremenCharacter::GetSignificantInputRotation(float Threshold)
 
 void AFremenCharacter::PerformAttack(unsigned int AttackIndex, bool IsRandom)
 {
-	if (!CombatComponent || !CombatComponent->CanAttack())
-	{
-		return;
-	}
-	
 	TArray<UAnimMontage*>& MontagesArray = CombatComponent->GetMainWeapon()->AttackMontages;
 	int Index = IsRandom ? FMath::RandRange(0, MontagesArray.Num()) : AttackIndex;
 

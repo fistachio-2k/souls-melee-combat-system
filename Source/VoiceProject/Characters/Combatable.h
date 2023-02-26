@@ -24,6 +24,6 @@ class VOICEPROJECT_API ICombatable
 public:
 	virtual void Attack() = 0;
 	virtual void AttackContinue() = 0;
-	virtual void AttackReset() = 0;
+	virtual void ResetMovementState() = 0;
 	virtual FRotator GetSignificantInputRotation(float Threshold) = 0;
 };
