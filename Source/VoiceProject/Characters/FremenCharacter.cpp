@@ -202,7 +202,7 @@ void AFremenCharacter::AttackReset()
 	bIsDodging = false;
 }
 
-FRotator AFremenCharacter::GetSignificantRotation(float Threshold)
+FRotator AFremenCharacter::GetSignificantInputRotation(float Threshold)
 {
 	const FVector LastInput = GetLastMovementInputVector();
 	if (LastInput.Length() >= Threshold)

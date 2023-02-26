@@ -25,5 +25,5 @@ public:
 	virtual void Attack() = 0;
 	virtual void AttackContinue() = 0;
 	virtual void AttackReset() = 0;
-	virtual FRotator GetSignificantRotation(float Threshold) = 0;
+	virtual FRotator GetSignificantInputRotation(float Threshold) = 0;
 };
