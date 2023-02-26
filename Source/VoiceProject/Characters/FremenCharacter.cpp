@@ -202,6 +202,17 @@ void AFremenCharacter::AttackReset()
 	bIsDodging = false;
 }
 
+FRotator AFremenCharacter::GetSignificantRotation(float Threshold)
+{
+	const FVector LastInput = GetLastMovementInputVector();
+	if (LastInput.Length() >= Threshold)
+	{
+		return FRotationMatrix::MakeFromX(LastInput).Rotator();
+	}
+
+	return GetActorRotation();
+}
+
 void AFremenCharacter::PerformAttack(unsigned int AttackIndex, bool IsRandom)
 {
 	if (!CombatComponent || !CombatComponent->CanAttack())
