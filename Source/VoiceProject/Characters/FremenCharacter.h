@@ -53,4 +53,10 @@ public:
 private:
 	UPROPERTY()
 	UCombatComponent* CombatComponent;
+
+	// TODO: consider move montage to CombatComp or BaseWeapon
+	UPROPERTY(EditAnywhere, Category = "Animation")
+	UAnimMontage* DodgeMontage;
+
+	bool bIsDodging;
 };

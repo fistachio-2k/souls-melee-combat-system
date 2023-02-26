@@ -28,10 +28,12 @@ public:
 
 	ABaseWeapon* GetMainWeapon() const;
 	void SetMainWeapon(ABaseWeapon* NewWeapon);
-	bool IsCombatEnabled() const;
 	void SetCombatEnabled(bool IsCombatEnabled);
 	void ResetCombat();
-
+	
+	bool IsCombatEnabled() const;
+	bool CanAttack() const;
+	
 	bool bIsAttacking;
 	bool bIsAttackSaved;
 	uint8 AttackCount;

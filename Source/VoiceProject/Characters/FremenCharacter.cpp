@@ -73,7 +73,7 @@ void AFremenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction(TEXT("ToggleWeapon"), IE_Pressed, this, &AFremenCharacter::ToggleWeapon);
 	PlayerInputComponent->BindAction(TEXT("Attack"), IE_Pressed, this, &AFremenCharacter::Attack);
 	PlayerInputComponent->BindAction(TEXT("Interact"), IE_Pressed, this, &AFremenCharacter::Interact);
-	PlayerInputComponent->BindAction(TEXT("Interact"), IE_Pressed, this, &AFremenCharacter::Dodge);
+	PlayerInputComponent->BindAction(TEXT("Dodge"), IE_Pressed, this, &AFremenCharacter::Dodge);
 }
 
 void AFremenCharacter::MoveForward(float AxisValue)
@@ -153,7 +153,7 @@ void AFremenCharacter::Dodge()
 {
 	Logger::Log(ELogLevel::INFO, __FUNCTION__);
 	
-	if (CombatComponent->bIsDodging)
+	if (bIsDodging || (CombatComponent && !CombatComponent->bIsAttacking))
 	{
 		return;
 	}
@@ -189,7 +189,7 @@ void AFremenCharacter::AttackContinue()
 	if (CombatComponent->bIsAttackSaved)
 	{
 		CombatComponent->bIsAttackSaved = false;
-		if (true /* Check NOT toggling weapon here */)
+		if (CombatComponent->IsCombatEnabled())
 		{
 			PerformAttack(CombatComponent->AttackCount);
 		}
@@ -199,11 +199,12 @@ void AFremenCharacter::AttackContinue()
 void AFremenCharacter::AttackReset()
 {
 	CombatComponent->ResetCombat();
+	bIsDodging = false;
 }
 
 void AFremenCharacter::PerformAttack(unsigned int AttackIndex, bool IsRandom)
 {
-	if (!CombatComponent || !CombatComponent->IsCombatEnabled())
+	if (!CombatComponent || !CombatComponent->CanAttack())
 	{
 		return;
 	}
@@ -223,10 +224,7 @@ void AFremenCharacter::PerformAttack(unsigned int AttackIndex, bool IsRandom)
 
 void AFremenCharacter::PerformDodge()
 {
-	if (!CombatComponent || !CombatComponent->IsCombatEnabled())
-	{
-		return;
-	}
-	
+	bIsDodging = true;
+	PlayAnimMontage(DodgeMontage);
 }
 
