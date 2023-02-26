@@ -153,7 +153,7 @@ void AFremenCharacter::Dodge()
 {
 	Logger::Log(ELogLevel::INFO, __FUNCTION__);
 	
-	if (bIsDodging || (CombatComponent && !CombatComponent->bIsAttacking))
+	if (bIsDodging || (CombatComponent && CombatComponent->bIsAttacking))
 	{
 		return;
 	}
