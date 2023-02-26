@@ -76,15 +76,6 @@ void AFremenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction(TEXT("Interact"), IE_Pressed, this, &AFremenCharacter::Dodge);
 }
 
-void AFremenCharacter::SetCombatEnabled(bool IsCombatEnabled)
-{
-	bIsCombatEnabled = IsCombatEnabled;
-	if (auto const AnimInstance = Cast<UFremenAnimInstance>(GetMesh()->GetAnimInstance()))
-	{
-		AnimInstance->UpdateIsCombatEnabled(IsCombatEnabled);
-	}
-}
-
 void AFremenCharacter::MoveForward(float AxisValue)
 {
 	if ((Controller != nullptr) && (AxisValue != 0.0f))
@@ -162,7 +153,12 @@ void AFremenCharacter::Dodge()
 {
 	Logger::Log(ELogLevel::INFO, __FUNCTION__);
 	
-	// TODO: add logic here
+	if (CombatComponent->bIsDodging)
+	{
+		return;
+	}
+
+	PerformDodge();
 }
 
 
@@ -223,5 +219,14 @@ void AFremenCharacter::PerformAttack(unsigned int AttackIndex, bool IsRandom)
 		CombatComponent->AttackCount %= MontagesArray.Num();
 		PlayAnimMontage(Montage);
 	}
+}
+
+void AFremenCharacter::PerformDodge()
+{
+	if (!CombatComponent || !CombatComponent->IsCombatEnabled())
+	{
+		return;
+	}
+	
 }
 

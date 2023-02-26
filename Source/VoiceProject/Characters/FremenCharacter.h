@@ -40,6 +40,7 @@ public:
 	virtual void AttackContinue() override;
 	virtual void AttackReset() override;
 	void PerformAttack(unsigned int AttackIndex, bool IsRandom = false);
+	void PerformDodge();
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -50,7 +51,6 @@ public:
 	TSubclassOf<ABaseWeapon> WeaponClass;
 
 private:
-	bool bIsCombatEnabled;
+	UPROPERTY()
 	UCombatComponent* CombatComponent;
-	void SetCombatEnabled(bool IsCombatEnabled);
 };
