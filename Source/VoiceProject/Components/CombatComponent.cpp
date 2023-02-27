@@ -62,6 +62,11 @@ bool UCombatComponent::IsCombatEnabled() const
 	return bIsCombatEnabled;
 }
 
+bool UCombatComponent::CanAttack() const
+{
+	return !bIsAttacking && bIsCombatEnabled;
+}
+
 void UCombatComponent::SetCombatEnabled(bool IsCombatEnabled)
 {
 		if (const AFremenCharacter* Character = Cast<AFremenCharacter>(GetOwner()))

@@ -73,15 +73,7 @@ void AFremenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction(TEXT("ToggleWeapon"), IE_Pressed, this, &AFremenCharacter::ToggleWeapon);
 	PlayerInputComponent->BindAction(TEXT("Attack"), IE_Pressed, this, &AFremenCharacter::Attack);
 	PlayerInputComponent->BindAction(TEXT("Interact"), IE_Pressed, this, &AFremenCharacter::Interact);
-}
-
-void AFremenCharacter::SetCombatEnabled(bool IsCombatEnabled)
-{
-	bIsCombatEnabled = IsCombatEnabled;
-	if (auto const AnimInstance = Cast<UFremenAnimInstance>(GetMesh()->GetAnimInstance()))
-	{
-		AnimInstance->UpdateIsCombatEnabled(IsCombatEnabled);
-	}
+	PlayerInputComponent->BindAction(TEXT("Dodge"), IE_Pressed, this, &AFremenCharacter::Dodge);
 }
 
 void AFremenCharacter::MoveForward(float AxisValue)
@@ -126,6 +118,11 @@ void AFremenCharacter::LookRight(float AxisValue)
 void AFremenCharacter::ToggleWeapon()
 {
 	Logger::Log(ELogLevel::INFO, __FUNCTION__);
+	if (bIsDodging)
+	{
+		return;
+	}
+	
 	if (const ABaseWeapon* MainWeapon = CombatComponent->GetMainWeapon())
 	{
 		if (UAnimMontage* Montage = CombatComponent->IsCombatEnabled() ? MainWeapon->SheatheWeaponMontage : MainWeapon->DrawWeaponMontage)
@@ -157,20 +154,34 @@ void AFremenCharacter::Interact()
 	}
 }
 
+void AFremenCharacter::Dodge()
+{
+	Logger::Log(ELogLevel::INFO, __FUNCTION__);
+	
+	if (bIsDodging || (CombatComponent && CombatComponent->bIsAttacking))
+	{
+		return;
+	}
+
+	PerformDodge();
+}
+
 
 void AFremenCharacter::Attack()
 {
 	Logger::Log(ELogLevel::INFO, __FUNCTION__);
+	if (bIsDodging || (CombatComponent && !CombatComponent->IsCombatEnabled()))
+	{
+		return;
+	}
+	
 	if (CombatComponent->bIsAttacking)
 	{
 		CombatComponent->bIsAttackSaved = true;
 	}
 	else
 	{
-		if (true /* Check NOT toggling weapon here */)
-		{
-			PerformAttack(CombatComponent->AttackCount, false);
-		}
+		PerformAttack(CombatComponent->AttackCount, false);
 	}
 }
 
@@ -185,25 +196,32 @@ void AFremenCharacter::AttackContinue()
 	if (CombatComponent->bIsAttackSaved)
 	{
 		CombatComponent->bIsAttackSaved = false;
-		if (true /* Check NOT toggling weapon here */)
+		if (CombatComponent->IsCombatEnabled())
 		{
 			PerformAttack(CombatComponent->AttackCount);
 		}
 	}
 }
 
-void AFremenCharacter::AttackReset()
+void AFremenCharacter::ResetMovementState()
 {
 	CombatComponent->ResetCombat();
+	bIsDodging = false;
+}
+
+FRotator AFremenCharacter::GetSignificantInputRotation(float Threshold)
+{
+	const FVector LastInput = GetLastMovementInputVector();
+	if (LastInput.Length() >= Threshold)
+	{
+		return FRotationMatrix::MakeFromX(LastInput).Rotator();
+	}
+
+	return GetActorRotation();
 }
 
 void AFremenCharacter::PerformAttack(unsigned int AttackIndex, bool IsRandom)
 {
-	if (!CombatComponent || !CombatComponent->IsCombatEnabled())
-	{
-		return;
-	}
-	
 	TArray<UAnimMontage*>& MontagesArray = CombatComponent->GetMainWeapon()->AttackMontages;
 	int Index = IsRandom ? FMath::RandRange(0, MontagesArray.Num()) : AttackIndex;
 
@@ -215,5 +233,11 @@ void AFremenCharacter::PerformAttack(unsigned int AttackIndex, bool IsRandom)
 		CombatComponent->AttackCount %= MontagesArray.Num();
 		PlayAnimMontage(Montage);
 	}
+}
+
+void AFremenCharacter::PerformDodge()
+{
+	bIsDodging = true;
+	PlayAnimMontage(DodgeMontage);
 }
 

@@ -20,9 +20,8 @@ void UEquipAnimNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBas
 			{
 				ABaseWeapon* Weapon = CombatComponent->GetMainWeapon();
 				Weapon->AttachActor(Weapon->IsWeaponInHand() ? Weapon->HeapSocketName : Weapon->HandSocketName);
-				CombatComponent->SetCombatEnabled(Weapon->IsWeaponInHand()); //In hand means in combat
+				CombatComponent->SetCombatEnabled(Weapon->IsWeaponInHand()); //In hand means in combat and vice versa
 			}
-			
 		}
 	}
 }

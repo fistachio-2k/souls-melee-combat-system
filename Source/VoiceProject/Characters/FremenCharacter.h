@@ -34,12 +34,16 @@ public:
 	
 	void ToggleWeapon();
 	void Interact();
+	void Dodge();
 
 	virtual void Attack() override;
 	virtual void AttackContinue() override;
-	virtual void AttackReset() override;
-	void PerformAttack(unsigned int AttackIndex, bool IsRandom = false);
+	virtual void ResetMovementState() override;
+	virtual FRotator GetSignificantInputRotation(float Threshold) override;
 	
+	void PerformAttack(unsigned int AttackIndex, bool IsRandom = false);
+	void PerformDodge();
+
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
@@ -49,7 +53,12 @@ public:
 	TSubclassOf<ABaseWeapon> WeaponClass;
 
 private:
-	bool bIsCombatEnabled;
+	UPROPERTY()
 	UCombatComponent* CombatComponent;
-	void SetCombatEnabled(bool IsCombatEnabled);
+
+	// TODO: consider move montage to CombatComp or BaseWeapon
+	UPROPERTY(EditAnywhere, Category = "Animation")
+	UAnimMontage* DodgeMontage;
+
+	bool bIsDodging;
 };
