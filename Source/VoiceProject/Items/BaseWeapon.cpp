@@ -4,6 +4,7 @@
 #include "BaseWeapon.h"
 #include "GameFramework/Character.h"
 #include "VoiceProject/Characters/FremenCharacter.h"
+#include "VoiceProject/Components/CollisionTraceComponent.h"
 #include "VoiceProject/Components/CombatComponent.h"
 #include "VoiceProject/Utils/Logger.h"
 
@@ -11,18 +12,26 @@
 ABaseWeapon::ABaseWeapon()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 	USceneComponent* Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	SetRootComponent(Root);
 	
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	MeshComponent->SetupAttachment(Root);
+
+	CollisionTraceComponent = CreateDefaultSubobject<UCollisionTraceComponent>(TEXT("CollisionTrace"));
+	AddOwnedComponent(CollisionTraceComponent);
 }
 
 // Called when the game starts or when spawned
 void ABaseWeapon::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	if (CollisionTraceComponent)
+	{
+		CollisionTraceComponent->OnHit.AddDynamic(this, &ABaseWeapon::WeaponHit);
+	}
 }
 
 // Called every frame
@@ -76,5 +85,10 @@ UPrimitiveComponent* ABaseWeapon::GetItemMesh()
 bool ABaseWeapon::IsWeaponInHand() const
 {
 	return bIsHandEquipped;
+}
+
+void ABaseWeapon::WeaponHit(FHitResult HitResult)
+{
+	return;
 }
 

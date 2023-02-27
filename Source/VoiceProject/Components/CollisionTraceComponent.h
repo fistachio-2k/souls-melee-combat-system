@@ -7,7 +7,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "CollisionTraceComponent.generated.h"
 
-DECLARE_DELEGATE_OneParam(FHitResultDelegate, FHitResult)
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHitResultDelegate, FHitResult, HitResult);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class VOICEPROJECT_API UCollisionTraceComponent : public UActorComponent
@@ -29,7 +29,7 @@ public:
 
 	void EnableCollision();
 	void DisableCollision();
-	bool CollisionTrace();
+	void CollisionTrace();
 	void ClearHitActors();
 
 	UPROPERTY(EditAnywhere, Category="Initialization")
@@ -50,6 +50,9 @@ public:
 	UPROPERTY(EditAnywhere, Category="Initialization")
 	TEnumAsByte<EDrawDebugTrace::Type> DebugType;
 	
+	UPROPERTY(BlueprintAssignable)
+	FHitResultDelegate OnHit;
+	
 private:
 	UPROPERTY()
 	TArray<AActor*> AlreadyHitActors;
@@ -57,5 +60,4 @@ private:
 	UPROPERTY()
 	UPrimitiveComponent* MeshComponent;
 
-	FHitResultDelegate OnHit;
 };

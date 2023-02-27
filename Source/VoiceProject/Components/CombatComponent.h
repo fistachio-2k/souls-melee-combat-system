@@ -39,6 +39,8 @@ public:
 	uint8 AttackCount;
 	
 private:
+	UPROPERTY()
 	ABaseWeapon* MainWeapon;
+	
 	bool bIsCombatEnabled;
 };

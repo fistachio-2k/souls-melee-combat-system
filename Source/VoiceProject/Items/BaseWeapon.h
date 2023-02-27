@@ -8,6 +8,8 @@
 #include "GameFramework/Actor.h"
 #include "BaseWeapon.generated.h"
 
+class UCollisionTraceComponent;
+
 UCLASS()
 class VOICEPROJECT_API ABaseWeapon : public AActor, public IEquippable, public IInteractable
 {
@@ -50,6 +52,11 @@ public:
 	FName HandSocketName;
 
 private:
+	UFUNCTION()
+	void WeaponHit(FHitResult HitResult);
+	
 	bool bIsHandEquipped = false;
 
+	UPROPERTY(VisibleAnywhere)
+	UCollisionTraceComponent* CollisionTraceComponent;
 };

@@ -42,11 +42,11 @@ void UCollisionTraceComponent::DisableCollision()
 	SetComponentTickEnabled(false);
 }
 
-bool UCollisionTraceComponent::CollisionTrace()
+void UCollisionTraceComponent::CollisionTrace()
 {
 	if (MeshComponent == nullptr)
 	{
-		return false;
+		return;
 	}
 
 	const FVector Start = MeshComponent->GetSocketLocation(StartSocketName);
@@ -60,15 +60,14 @@ bool UCollisionTraceComponent::CollisionTrace()
 		for (FHitResult HitResult : OutHits)
 		{
 			AActor* HitActor = HitResult.GetActor();
-			if (!AlreadyHitActors.Contains(HitActor))
+			if (!AlreadyHitActors.Contains(HitActor) && OnHit.IsBound())
 			{
 				AlreadyHitActors.Emplace(HitActor);
-				OnHit.Execute(HitResult);
+				OnHit.Broadcast(HitResult);
 			}
 		}
 	}
 	
-	return true;
 }
 
 void UCollisionTraceComponent::ClearHitActors()
