@@ -89,6 +89,6 @@ bool ABaseWeapon::IsWeaponInHand() const
 
 void ABaseWeapon::WeaponHit(FHitResult HitResult)
 {
-	return;
+	Logger::Log(ELogLevel::INFO, "WeaponHit!");
 }
 

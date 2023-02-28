@@ -3,13 +3,17 @@
 
 #include "CollisionTraceComponent.h"
 
+#include "Kismet/GameplayStatics.h"
+#include "VoiceProject/Items/BaseWeapon.h"
+#include "VoiceProject/Utils/Logger.h"
+
 
 // Sets default values for this component's properties
 UCollisionTraceComponent::UCollisionTraceComponent()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.bCanEverTick = true;
 
 	// ...
 }
@@ -17,8 +21,27 @@ UCollisionTraceComponent::UCollisionTraceComponent()
 
 // Called when the game starts
 void UCollisionTraceComponent::BeginPlay()
-{
+{ 
 	Super::BeginPlay();
+	SetComponentTickEnabled(false);
+
+	// Get Mesh from owner
+	if (UObject* Object = GetOwner()->GetDefaultSubobjectByName(MeshName))
+	{
+		if (UPrimitiveComponent* Component = Cast<UPrimitiveComponent>(Object))
+		{
+			MeshComponent = Component;
+		}
+		else
+		{
+			Logger::Log(ELogLevel::ERROR, "UCollisionTraceComponent can't find Mesh component.");
+		}
+	}
+
+	if (bIgnorePlayerPawn)
+	{
+		ActorsToIgnore.AddUnique(UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetPawn());
+	}
 }
 
 
@@ -74,4 +97,3 @@ void UCollisionTraceComponent::ClearHitActors()
 {
 	AlreadyHitActors.Empty();
 }
-

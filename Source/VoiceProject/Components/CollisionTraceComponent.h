@@ -43,21 +43,26 @@ public:
 
 	UPROPERTY(EditAnywhere, Category="Initialization")
 	TArray<TEnumAsByte<EObjectTypeQuery>> CollisionObjectType;
-
-	UPROPERTY(EditAnywhere, Category="Initialization")
-	TArray<AActor*> ActorsToIgnore;
-
+	
 	UPROPERTY(EditAnywhere, Category="Initialization")
 	TEnumAsByte<EDrawDebugTrace::Type> DebugType;
+
+	UPROPERTY(EditAnywhere, Category="Initialization")
+	FName MeshName;
+	
+	UPROPERTY(EditAnywhere, Category="Initialization")
+	bool bIgnorePlayerPawn = true;
 	
 	UPROPERTY(BlueprintAssignable)
 	FHitResultDelegate OnHit;
-	
+
 private:
 	UPROPERTY()
 	TArray<AActor*> AlreadyHitActors;
-
+	
+	UPROPERTY()
+	TArray<AActor*> ActorsToIgnore;
+	
 	UPROPERTY()
 	UPrimitiveComponent* MeshComponent;
-
 };
