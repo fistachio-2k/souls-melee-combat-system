@@ -58,6 +58,8 @@ void ABaseWeapon::OnEquipped()
 {
 	IEquippable::OnEquipped();
 	AttachActor(HeapSocketName);
+	CollisionTraceComponent->SetCollisionMesh(GetItemMesh());
+	CollisionTraceComponent->AddActorToIgnore(GetOwner());
 }
 
 void ABaseWeapon::OnUnequipped()

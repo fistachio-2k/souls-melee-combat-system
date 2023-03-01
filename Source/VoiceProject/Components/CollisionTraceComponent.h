@@ -31,6 +31,9 @@ public:
 	void DisableCollision();
 	void CollisionTrace();
 	void ClearHitActors();
+	void SetCollisionMesh(UPrimitiveComponent* Mesh);
+	void AddActorToIgnore(AActor* Actor);
+	void RemoveActorToIgnore(AActor* Actor);
 
 	UPROPERTY(EditAnywhere, Category="Initialization")
 	FName StartSocketName;
@@ -46,12 +49,6 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category="Initialization")
 	TEnumAsByte<EDrawDebugTrace::Type> DebugType;
-
-	UPROPERTY(EditAnywhere, Category="Initialization")
-	FName MeshName;
-	
-	UPROPERTY(EditAnywhere, Category="Initialization")
-	bool bIgnorePlayerPawn = true;
 	
 	UPROPERTY(BlueprintAssignable)
 	FHitResultDelegate OnHit;

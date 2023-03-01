@@ -24,24 +24,6 @@ void UCollisionTraceComponent::BeginPlay()
 { 
 	Super::BeginPlay();
 	SetComponentTickEnabled(false);
-
-	// Get Mesh from owner
-	if (UObject* Object = GetOwner()->GetDefaultSubobjectByName(MeshName))
-	{
-		if (UPrimitiveComponent* Component = Cast<UPrimitiveComponent>(Object))
-		{
-			MeshComponent = Component;
-		}
-		else
-		{
-			Logger::Log(ELogLevel::ERROR, "UCollisionTraceComponent can't find Mesh component.");
-		}
-	}
-
-	if (bIgnorePlayerPawn)
-	{
-		ActorsToIgnore.AddUnique(UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetPawn());
-	}
 }
 
 
@@ -96,4 +78,26 @@ void UCollisionTraceComponent::CollisionTrace()
 void UCollisionTraceComponent::ClearHitActors()
 {
 	AlreadyHitActors.Empty();
+}
+
+void UCollisionTraceComponent::SetCollisionMesh(UPrimitiveComponent* Mesh)
+{
+	if (Mesh)
+	{
+		MeshComponent = Mesh;
+	}
+	else
+	{
+		Logger::Log(ELogLevel::ERROR, "Mesh component is null.");
+	}
+}
+
+void UCollisionTraceComponent::AddActorToIgnore(AActor* Actor)
+{
+	ActorsToIgnore.AddUnique(Actor);
+}
+
+void UCollisionTraceComponent::RemoveActorToIgnore(AActor* Actor)
+{
+	ActorsToIgnore.Remove(Actor);
 }

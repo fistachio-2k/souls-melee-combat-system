@@ -11,7 +11,7 @@ void UCollisionTraceAnimNotifyState::NotifyBegin(USkeletalMeshComponent* MeshCom
 {
 	Super::NotifyBegin(MeshComp, Animation, FrameDeltaTime, EventReference);
 
-	UActorComponent* CombatActorComponent = MeshComp->GetOwner()->GetComponentByClass(UCombatComponent::StaticClass());
+	UActorComponent* CombatActorComponent = MeshComp->GetOwner()->GetComponentByClass(UCombatComponent::StaticClass()); // TODO: refactor this!
 	if (const UCombatComponent* CombatComponent = Cast<UCombatComponent>(CombatActorComponent))
 	{
 		UActorComponent* CollisionActorComponent = CombatComponent->GetMainWeapon()->GetComponentByClass(UCollisionTraceComponent::StaticClass());
@@ -27,7 +27,7 @@ void UCollisionTraceAnimNotifyState::NotifyEnd(USkeletalMeshComponent* MeshComp,
 {
 	Super::NotifyEnd(MeshComp, Animation, EventReference);
 
-	UActorComponent* CombatActorComponent = MeshComp->GetOwner()->GetComponentByClass(UCombatComponent::StaticClass());
+	UActorComponent* CombatActorComponent = MeshComp->GetOwner()->GetComponentByClass(UCombatComponent::StaticClass()); // TODO: refactor this!
 	if (const UCombatComponent* CombatComponent = Cast<UCombatComponent>(CombatActorComponent))
 	{
 		UActorComponent* CollisionActorComponent = CombatComponent->GetMainWeapon()->GetComponentByClass(UCollisionTraceComponent::StaticClass());
