@@ -34,30 +34,14 @@ AFremenCharacter::AFremenCharacter()
 void AFremenCharacter::BeginPlay()
 {
 	Super::BeginPlay();		
-	
-	// Spawn main weapon.
-	if (WeaponClass != nullptr)
-	{
-		if (UWorld* World = GetWorld())
-		{
-			FActorSpawnParameters SpawnParameters;
-			
-			SpawnParameters.Owner = this;
-			SpawnParameters.Instigator = this;
-
-			if (ABaseWeapon* Weapon = World->SpawnActor<ABaseWeapon>(WeaponClass, GetActorTransform(), SpawnParameters))
-			{
-				CombatComponent->SetMainWeapon(Weapon);
-			}
-		}
-	}
+	OnTakePointDamage.AddUniqueDynamic(this, &AFremenCharacter::OnReceivePointDamage);
+	TrySpawnMainCharacter();
 }
 
 // Called every frame
 void AFremenCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 // Called to bind functionality to input
@@ -166,7 +150,6 @@ void AFremenCharacter::Dodge()
 	PerformDodge();
 }
 
-
 void AFremenCharacter::Attack()
 {
 	Logger::Log(ELogLevel::INFO, __FUNCTION__);
@@ -239,5 +222,32 @@ void AFremenCharacter::PerformDodge()
 {
 	bIsDodging = true;
 	PlayAnimMontage(DodgeMontage);
+}
+
+void AFremenCharacter::OnReceivePointDamage(AActor* DamagedActor, float Damage, AController* InstigatedBy,
+	FVector HitLocation, UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection,
+	const UDamageType* DamageType, AActor* DamageCauser)
+{
+	Logger::Log(ELogLevel::DEBUG, __FUNCTION__);
+	
+}
+
+void AFremenCharacter::TrySpawnMainCharacter()
+{
+	if (WeaponClass != nullptr)
+	{
+		if (UWorld* World = GetWorld())
+		{
+			FActorSpawnParameters SpawnParameters;
+			
+			SpawnParameters.Owner = this;
+			SpawnParameters.Instigator = this;
+
+			if (ABaseWeapon* Weapon = World->SpawnActor<ABaseWeapon>(WeaponClass, GetActorTransform(), SpawnParameters))
+			{
+				CombatComponent->SetMainWeapon(Weapon);
+			}
+		}
+	}
 }
 

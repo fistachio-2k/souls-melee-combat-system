@@ -93,7 +93,6 @@ bool ABaseWeapon::IsWeaponInHand() const
 void ABaseWeapon::WeaponHit(FHitResult HitResult)
 {
 	Logger::Log(ELogLevel::INFO, __FUNCTION__);
-	TSubclassOf <UDamageType> DamageType;
-	UGameplayStatics::ApplyPointDamage(HitResult.GetActor(), Damage, HitResult.ImpactNormal, HitResult, GetInstigatorController(), this,  DamageType);
+	UGameplayStatics::ApplyPointDamage(HitResult.GetActor(), Damage, HitResult.ImpactNormal, HitResult, GetInstigatorController(), this,  UDamageType::StaticClass());
 }
 

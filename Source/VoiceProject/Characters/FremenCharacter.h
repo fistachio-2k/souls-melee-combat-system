@@ -18,6 +18,7 @@ class VOICEPROJECT_API AFremenCharacter : public ACharacter, public ICombatable
 public:
 	// Sets default values for this character's properties
 	AFremenCharacter();
+	void TrySpawnMainCharacter();
 
 protected:
 	// Called when the game starts or when spawned
@@ -26,6 +27,9 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	
+	// Called to bind functionality to input
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	void MoveForward(float AxisValue);
 	void MoveRight(float AxisValue);
@@ -44,13 +48,13 @@ public:
 	void PerformAttack(unsigned int AttackIndex, bool IsRandom = false);
 	void PerformDodge();
 
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	float RotationRate = 100.f;
-
+	UFUNCTION()
+	void OnReceivePointDamage(AActor* DamagedActor, float Damage, class AController* InstigatedBy, FVector HitLocation, UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const UDamageType* DamageType, AActor* DamageCauser);
+	
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<ABaseWeapon> WeaponClass;
+	
+	float RotationRate = 100.f;
 
 private:
 	UPROPERTY()
