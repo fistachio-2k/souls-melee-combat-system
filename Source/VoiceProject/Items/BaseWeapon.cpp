@@ -3,6 +3,7 @@
 
 #include "BaseWeapon.h"
 #include "GameFramework/Character.h"
+#include "Kismet/GameplayStatics.h"
 #include "VoiceProject/Characters/FremenCharacter.h"
 #include "VoiceProject/Components/CollisionTraceComponent.h"
 #include "VoiceProject/Components/CombatComponent.h"
@@ -91,6 +92,8 @@ bool ABaseWeapon::IsWeaponInHand() const
 
 void ABaseWeapon::WeaponHit(FHitResult HitResult)
 {
-	Logger::Log(ELogLevel::INFO, "WeaponHit!");
+	Logger::Log(ELogLevel::INFO, __FUNCTION__);
+	TSubclassOf <UDamageType> DamageType;
+	UGameplayStatics::ApplyPointDamage(HitResult.GetActor(), Damage, HitResult.ImpactNormal, HitResult, GetInstigatorController(), this,  DamageType);
 }
 

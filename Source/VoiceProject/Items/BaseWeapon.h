@@ -35,6 +35,9 @@ public:
 	
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* MeshComponent;
+	
+	UPROPERTY(EditAnywhere)
+	int Damage = 50;
 
 	UPROPERTY(EditAnywhere, Category = "Animation")
 	UAnimMontage* DrawWeaponMontage;
@@ -50,6 +53,7 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Animation")
 	FName HandSocketName;
+
 
 private:
 	UFUNCTION()
