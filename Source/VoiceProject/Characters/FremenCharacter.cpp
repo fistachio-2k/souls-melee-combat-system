@@ -3,13 +3,14 @@
 
 #include "FremenCharacter.h"
 
-#include "FremenAnimInstance.h"
 #include "VoiceProject/Items/BaseWeapon.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "VoiceProject/Components/CombatComponent.h"
 #include "VoiceProject/Items/Interactable.h"
 #include "VoiceProject/Utils/Logger.h"
+#include "NiagaraFunctionLibrary.h"
 
 // Sets default values
 AFremenCharacter::AFremenCharacter()
@@ -142,7 +143,7 @@ void AFremenCharacter::Dodge()
 {
 	Logger::Log(ELogLevel::INFO, __FUNCTION__);
 	
-	if (bIsDodging || (CombatComponent && CombatComponent->bIsAttacking))
+	if (bIsDisabled || bIsDodging || (CombatComponent && CombatComponent->bIsAttacking))
 	{
 		return;
 	}
@@ -153,7 +154,7 @@ void AFremenCharacter::Dodge()
 void AFremenCharacter::Attack()
 {
 	Logger::Log(ELogLevel::INFO, __FUNCTION__);
-	if (bIsDodging || (CombatComponent && !CombatComponent->IsCombatEnabled()))
+	if (bIsDisabled || bIsDodging || (CombatComponent && !CombatComponent->IsCombatEnabled()))
 	{
 		return;
 	}
@@ -190,6 +191,7 @@ void AFremenCharacter::ResetMovementState()
 {
 	CombatComponent->ResetCombat();
 	bIsDodging = false;
+	bIsDisabled = false;
 }
 
 FRotator AFremenCharacter::GetSignificantInputRotation(float Threshold)
@@ -229,7 +231,11 @@ void AFremenCharacter::OnReceivePointDamage(AActor* DamagedActor, float Damage, 
 	const UDamageType* DamageType, AActor* DamageCauser)
 {
 	Logger::Log(ELogLevel::DEBUG, __FUNCTION__);
-	
+
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(),HitCue, HitLocation);
+	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), BloodEmitter, HitLocation, ShotFromDirection.Rotation());
+	PlayAnimMontage(HitMontage);
+	bIsDisabled = true;
 }
 
 void AFremenCharacter::TrySpawnMainCharacter()

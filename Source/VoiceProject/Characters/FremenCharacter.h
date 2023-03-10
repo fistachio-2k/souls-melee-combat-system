@@ -4,7 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "Combatable.h"
+#include "NiagaraSystem.h"
 #include "GameFramework/Character.h"
+#include "Sound/SoundCue.h"
 #include "FremenCharacter.generated.h"
 
 class UCombatComponent;
@@ -54,6 +56,15 @@ public:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<ABaseWeapon> WeaponClass;
 	
+	UPROPERTY(EditAnywhere)
+	USoundBase* HitCue;
+	
+	UPROPERTY(EditAnywhere)
+	UNiagaraSystem* BloodEmitter;
+
+	UPROPERTY(EditAnywhere)
+	UAnimMontage* HitMontage;
+	
 	float RotationRate = 100.f;
 
 private:
@@ -65,4 +76,5 @@ private:
 	UAnimMontage* DodgeMontage;
 
 	bool bIsDodging;
+	bool bIsDisabled;
 };
