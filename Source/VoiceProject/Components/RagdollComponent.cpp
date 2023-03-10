@@ -27,7 +27,7 @@ void URagdollComponent::BeginPlay()
 
 void URagdollComponent::EnableRagdoll() const
 {
-	if (!CapsuleComponent || !MeshComponent || !SpringArmComponent || !MovementComponent)
+	if (!CapsuleComponent || !MeshComponent || !MovementComponent)
 	{
 		Logger::Log(ELogLevel::ERROR, "Failed to enable ragdoll.");
 	}
@@ -39,13 +39,17 @@ void URagdollComponent::EnableRagdoll() const
 
 	MovementComponent->SetMovementMode(MOVE_None);
 
-	const auto AttachmentRules = FAttachmentTransformRules(EAttachmentRule::KeepWorld, true);
-	SpringArmComponent->AttachToComponent(MeshComponent, AttachmentRules ,PelvisBoneName);
-	SpringArmComponent->bDoCollisionTest = false;
-
 	MeshComponent->SetCollisionProfileName(TEXT("Ragdoll"), true);
 	MeshComponent->SetAllBodiesBelowSimulatePhysics(PelvisBoneName, true, true);
 	MeshComponent->SetAllBodiesBelowPhysicsBlendWeight(PelvisBoneName, 1, false, true);
+
+	// Relevant for player pawn only
+	if (SpringArmComponent)
+	{
+		const auto AttachmentRules = FAttachmentTransformRules(EAttachmentRule::KeepWorld, true);
+		SpringArmComponent->AttachToComponent(MeshComponent, AttachmentRules ,PelvisBoneName);
+		SpringArmComponent->bDoCollisionTest = false;
+	}
 }
 
 void URagdollComponent::Init()
@@ -62,7 +66,7 @@ void URagdollComponent::Init()
 		SpringArmComponent = Cast<USpringArmComponent>(ActorComponent);
 	}
 
-	if (!CapsuleComponent || !MeshComponent || !SpringArmComponent || !MovementComponent)
+	if (!CapsuleComponent || !MeshComponent || !MovementComponent)
 	{
 		Logger::Log(ELogLevel::ERROR, "Initializing ragdoll component has failed, can't resolve all references from owner.");
 	}

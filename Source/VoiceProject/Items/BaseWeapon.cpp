@@ -35,13 +35,6 @@ void ABaseWeapon::BeginPlay()
 	}
 }
 
-// Called every frame
-void ABaseWeapon::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
 void ABaseWeapon::Interact(AActor* Caller)
 {
 	if (const AFremenCharacter* Character = Cast<AFremenCharacter>(Caller))

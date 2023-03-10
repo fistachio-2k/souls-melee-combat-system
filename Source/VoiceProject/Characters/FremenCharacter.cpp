@@ -11,12 +11,13 @@
 #include "VoiceProject/Items/Interactable.h"
 #include "VoiceProject/Utils/Logger.h"
 #include "NiagaraFunctionLibrary.h"
+#include "Components/RagdollComponent.h"
 
 // Sets default values
 AFremenCharacter::AFremenCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 	
 	// Rotation is determent by the camera and not by the controller.
 	bUseControllerRotationPitch = false;
@@ -29,6 +30,9 @@ AFremenCharacter::AFremenCharacter()
 
 	CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	AddOwnedComponent(CombatComponent);
+
+	RagdollComponent = CreateDefaultSubobject<URagdollComponent>(TEXT("RagdollComponent"));
+	AddOwnedComponent(RagdollComponent);
 }
 
 // Called when the game starts or when spawned
@@ -37,12 +41,6 @@ void AFremenCharacter::BeginPlay()
 	Super::BeginPlay();		
 	OnTakePointDamage.AddUniqueDynamic(this, &AFremenCharacter::OnReceivePointDamage);
 	TrySpawnMainCharacter();
-}
-
-// Called every frame
-void AFremenCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
 }
 
 // Called to bind functionality to input
@@ -226,9 +224,41 @@ void AFremenCharacter::PerformDodge()
 	PlayAnimMontage(DodgeMontage);
 }
 
+void AFremenCharacter::PerformDeath()
+{
+	Logger::Log(ELogLevel::DEBUG, __FUNCTION__);
+
+	bIsDead = true;
+	RagdollComponent->EnableRagdoll();
+	
+	float InitialSpeed = 2000.f;
+	FVector HitVelocity = GetActorForwardVector() * InitialSpeed * -1;
+	GetMesh()->SetPhysicsLinearVelocity(HitVelocity, false, TEXT("Pelvis"));
+
+	if (ABaseWeapon* MainWeapon = CombatComponent->GetMainWeapon())
+	{
+		MainWeapon->GetItemMesh()->SetCollisionProfileName(TEXT("PhysicsActor"), true);
+		MainWeapon->GetItemMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+		MainWeapon->GetItemMesh()->SetSimulatePhysics(true);
+	}
+
+	FTimerHandle DeathTimer;
+	GetWorldTimerManager().SetTimer(DeathTimer, this, &AFremenCharacter::DestroyCharacter, 5.f, false);
+}
+
+void AFremenCharacter::DestroyCharacter()
+{
+	if (ABaseWeapon* MainWeapon = CombatComponent->GetMainWeapon())
+	{
+		MainWeapon->Destroy();
+	}
+	
+	this->Destroy();
+}
+
 void AFremenCharacter::OnReceivePointDamage(AActor* DamagedActor, float Damage, AController* InstigatedBy,
-	FVector HitLocation, UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection,
-	const UDamageType* DamageType, AActor* DamageCauser)
+                                            FVector HitLocation, UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection,
+                                            const UDamageType* DamageType, AActor* DamageCauser)
 {
 	Logger::Log(ELogLevel::DEBUG, __FUNCTION__);
 
@@ -236,6 +266,12 @@ void AFremenCharacter::OnReceivePointDamage(AActor* DamagedActor, float Damage, 
 	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), BloodEmitter, HitLocation, ShotFromDirection.Rotation());
 	PlayAnimMontage(HitMontage);
 	bIsDisabled = true;
+	Health -= Damage;
+
+	if (Health <= 0)
+	{
+		PerformDeath();
+	}
 }
 
 void AFremenCharacter::TrySpawnMainCharacter()

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Combatable.h"
 #include "NiagaraSystem.h"
+#include "Components/RagdollComponent.h"
 #include "GameFramework/Character.h"
 #include "Sound/SoundCue.h"
 #include "FremenCharacter.generated.h"
@@ -27,9 +28,6 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-	
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
@@ -50,6 +48,10 @@ public:
 	void PerformAttack(unsigned int AttackIndex, bool IsRandom = false);
 	void PerformDodge();
 
+	UFUNCTION(BlueprintCallable, Category = "Test")
+	void PerformDeath();
+	void DestroyCharacter();
+	
 	UFUNCTION()
 	void OnReceivePointDamage(AActor* DamagedActor, float Damage, class AController* InstigatedBy, FVector HitLocation, UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const UDamageType* DamageType, AActor* DamageCauser);
 	
@@ -70,11 +72,17 @@ public:
 private:
 	UPROPERTY()
 	UCombatComponent* CombatComponent;
-
-	// TODO: consider move montage to CombatComp or BaseWeapon
-	UPROPERTY(EditAnywhere, Category = "Animation")
+	
+	UPROPERTY()
+	URagdollComponent* RagdollComponent;
+	
+	UPROPERTY(EditAnywhere, Category = "Animation") // TODO: consider move montage to CombatComp or BaseWeapon or some other state machine
 	UAnimMontage* DodgeMontage;
 
+	UPROPERTY(VisibleAnywhere)
+	float Health = 100.f;
+	
 	bool bIsDodging;
 	bool bIsDisabled;
+	bool bIsDead;
 };
