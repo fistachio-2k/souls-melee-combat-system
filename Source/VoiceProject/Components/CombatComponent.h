@@ -22,10 +22,6 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
-	                           FActorComponentTickFunction* ThisTickFunction) override;
-
 	ABaseWeapon* GetMainWeapon() const;
 	void SetMainWeapon(ABaseWeapon* NewWeapon);
 	void SetCombatEnabled(bool IsCombatEnabled);
@@ -39,6 +35,8 @@ public:
 	uint8 AttackCount;
 	
 private:
+	UPROPERTY()
 	ABaseWeapon* MainWeapon;
+	
 	bool bIsCombatEnabled;
 };

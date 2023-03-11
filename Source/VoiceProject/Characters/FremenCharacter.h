@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Combatable.h"
+#include "NiagaraSystem.h"
+#include "Components/RagdollComponent.h"
 #include "GameFramework/Character.h"
 #include "FremenCharacter.generated.h"
 
@@ -24,9 +26,16 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	// Called to bind functionality to input
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	
+	virtual FRotator GetSignificantInputRotation(float Threshold) override;
+	virtual void AttackContinue() override;
+	virtual void ResetMovementState() override;
+	virtual bool CanReceiveDamage() override;
 
+private:
+	void TrySpawnMainWeapon();
 	void MoveForward(float AxisValue);
 	void MoveRight(float AxisValue);
 	void LookUp(float AxisValue);
@@ -37,28 +46,43 @@ public:
 	void Dodge();
 
 	virtual void Attack() override;
-	virtual void AttackContinue() override;
-	virtual void ResetMovementState() override;
-	virtual FRotator GetSignificantInputRotation(float Threshold) override;
-	
+
 	void PerformAttack(unsigned int AttackIndex, bool IsRandom = false);
 	void PerformDodge();
 
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	float RotationRate = 100.f;
-
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<ABaseWeapon> WeaponClass;
-
-private:
+	UFUNCTION(BlueprintCallable, Category = "Test")
+	void PerformDeath();
+	void DestroyCharacter();
+	
+	UFUNCTION()
+	void OnReceivePointDamage(AActor* DamagedActor, float Damage, class AController* InstigatedBy, FVector HitLocation, UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const UDamageType* DamageType, AActor* DamageCauser);
+	
 	UPROPERTY()
 	UCombatComponent* CombatComponent;
+	
+	UPROPERTY()
+	URagdollComponent* RagdollComponent;
+	
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<ABaseWeapon> WeaponClass;
+	
+	UPROPERTY(EditAnywhere)
+	USoundBase* HitCue;
+	
+	UPROPERTY(EditAnywhere)
+	UNiagaraSystem* BloodEmitter;
 
-	// TODO: consider move montage to CombatComp or BaseWeapon
-	UPROPERTY(EditAnywhere, Category = "Animation")
+	UPROPERTY(EditAnywhere)
+	UAnimMontage* HitMontage;
+	
+	UPROPERTY(EditAnywhere, Category = "Animation") // TODO: consider move montage to CombatComp or BaseWeapon or some other state machine
 	UAnimMontage* DodgeMontage;
 
+	UPROPERTY(VisibleAnywhere)
+	float Health = 100.f;
+	float RotationRate = 100.f;
+	
 	bool bIsDodging;
+	bool bIsDisabled;
+	bool bIsDead;
 };

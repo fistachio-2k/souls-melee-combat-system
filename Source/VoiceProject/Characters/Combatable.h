@@ -7,7 +7,7 @@
 #include "Combatable.generated.h"
 
 // This class does not need to be modified.
-UINTERFACE()
+UINTERFACE(MinimalAPI)
 class UCombatable : public UInterface
 {
 	GENERATED_BODY()
@@ -16,7 +16,7 @@ class UCombatable : public UInterface
 /**
  * 
  */
-class VOICEPROJECT_API ICombatable
+class VOICEPROJECT_API ICombatable 
 {
 	GENERATED_BODY()
 
@@ -26,4 +26,5 @@ public:
 	virtual void AttackContinue() = 0;
 	virtual void ResetMovementState() = 0;
 	virtual FRotator GetSignificantInputRotation(float Threshold) = 0;
+	virtual bool CanReceiveDamage() = 0;
 };

@@ -1,21 +1,23 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "FremenCharacter.h"
+#include "FremenCharacter.h" 
 
-#include "FremenAnimInstance.h"
 #include "VoiceProject/Items/BaseWeapon.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "VoiceProject/Components/CombatComponent.h"
 #include "VoiceProject/Items/Interactable.h"
 #include "VoiceProject/Utils/Logger.h"
+#include "NiagaraFunctionLibrary.h"
+#include "Components/RagdollComponent.h"
 
 // Sets default values
 AFremenCharacter::AFremenCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 	
 	// Rotation is determent by the camera and not by the controller.
 	bUseControllerRotationPitch = false;
@@ -28,36 +30,17 @@ AFremenCharacter::AFremenCharacter()
 
 	CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	AddOwnedComponent(CombatComponent);
+
+	RagdollComponent = CreateDefaultSubobject<URagdollComponent>(TEXT("RagdollComponent"));
+	AddOwnedComponent(RagdollComponent);
 }
 
 // Called when the game starts or when spawned
 void AFremenCharacter::BeginPlay()
 {
 	Super::BeginPlay();		
-	
-	// Spawn main weapon.
-	if (WeaponClass != nullptr)
-	{
-		if (UWorld* World = GetWorld())
-		{
-			FActorSpawnParameters SpawnParameters;
-			
-			SpawnParameters.Owner = this;
-			SpawnParameters.Instigator = this;
-
-			if (ABaseWeapon* Weapon = World->SpawnActor<ABaseWeapon>(WeaponClass, GetActorTransform(), SpawnParameters))
-			{
-				CombatComponent->SetMainWeapon(Weapon);
-			}
-		}
-	}
-}
-
-// Called every frame
-void AFremenCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
+	OnTakePointDamage.AddUniqueDynamic(this, &AFremenCharacter::OnReceivePointDamage);
+	TrySpawnMainWeapon();
 }
 
 // Called to bind functionality to input
@@ -118,7 +101,7 @@ void AFremenCharacter::LookRight(float AxisValue)
 void AFremenCharacter::ToggleWeapon()
 {
 	Logger::Log(ELogLevel::INFO, __FUNCTION__);
-	if (bIsDodging)
+	if (bIsDead || bIsDisabled || bIsDodging || (CombatComponent && CombatComponent->bIsAttacking))
 	{
 		return;
 	}
@@ -158,7 +141,7 @@ void AFremenCharacter::Dodge()
 {
 	Logger::Log(ELogLevel::INFO, __FUNCTION__);
 	
-	if (bIsDodging || (CombatComponent && CombatComponent->bIsAttacking))
+	if (bIsDead || bIsDisabled || bIsDodging || (CombatComponent && CombatComponent->bIsAttacking))
 	{
 		return;
 	}
@@ -166,11 +149,10 @@ void AFremenCharacter::Dodge()
 	PerformDodge();
 }
 
-
 void AFremenCharacter::Attack()
 {
 	Logger::Log(ELogLevel::INFO, __FUNCTION__);
-	if (bIsDodging || (CombatComponent && !CombatComponent->IsCombatEnabled()))
+	if (bIsDead || bIsDisabled || bIsDodging || (CombatComponent && !CombatComponent->IsCombatEnabled()))
 	{
 		return;
 	}
@@ -207,6 +189,12 @@ void AFremenCharacter::ResetMovementState()
 {
 	CombatComponent->ResetCombat();
 	bIsDodging = false;
+	bIsDisabled = false;
+}
+
+bool AFremenCharacter::CanReceiveDamage()
+{
+	return !bIsDead;
 }
 
 FRotator AFremenCharacter::GetSignificantInputRotation(float Threshold)
@@ -239,5 +227,77 @@ void AFremenCharacter::PerformDodge()
 {
 	bIsDodging = true;
 	PlayAnimMontage(DodgeMontage);
+}
+
+void AFremenCharacter::PerformDeath()
+{
+	Logger::Log(ELogLevel::DEBUG, __FUNCTION__);
+
+	bIsDead = true;
+	RagdollComponent->EnableRagdoll();
+
+	// Add impact velocity
+	float InitialSpeed = 2000.f;
+	FVector HitVelocity = GetActorForwardVector() * InitialSpeed * -1;
+	GetMesh()->SetPhysicsLinearVelocity(HitVelocity, false, TEXT("Pelvis"));
+
+	// Apply physics on main weapon
+	if (ABaseWeapon* MainWeapon = CombatComponent->GetMainWeapon())
+	{
+		MainWeapon->GetItemMesh()->SetCollisionProfileName(TEXT("PhysicsActor"), true);
+		MainWeapon->GetItemMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+		MainWeapon->GetItemMesh()->SetSimulatePhysics(true);
+	}
+
+	// Destroy character and weapon after delay time ends
+	FTimerHandle DeathTimer;
+	GetWorldTimerManager().SetTimer(DeathTimer, this, &AFremenCharacter::DestroyCharacter, 5.f, false);
+}
+
+void AFremenCharacter::DestroyCharacter()
+{
+	if (ABaseWeapon* MainWeapon = CombatComponent->GetMainWeapon())
+	{
+		MainWeapon->Destroy();
+	}
+	
+	this->Destroy();
+}
+
+void AFremenCharacter::OnReceivePointDamage(AActor* DamagedActor, float Damage, AController* InstigatedBy,
+                                            FVector HitLocation, UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection,
+                                            const UDamageType* DamageType, AActor* DamageCauser)
+{
+	Logger::Log(ELogLevel::DEBUG, __FUNCTION__);
+
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(),HitCue, HitLocation);
+	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), BloodEmitter, HitLocation, ShotFromDirection.Rotation());
+	PlayAnimMontage(HitMontage);
+	bIsDisabled = true;
+	Health -= Damage;
+
+	if (Health <= 0)
+	{
+		PerformDeath();
+	}
+}
+
+void AFremenCharacter::TrySpawnMainWeapon()
+{
+	if (WeaponClass != nullptr)
+	{
+		if (UWorld* World = GetWorld())
+		{
+			FActorSpawnParameters SpawnParameters;
+			
+			SpawnParameters.Owner = this;
+			SpawnParameters.Instigator = this;
+
+			if (ABaseWeapon* Weapon = World->SpawnActor<ABaseWeapon>(WeaponClass, GetActorTransform(), SpawnParameters))
+			{
+				CombatComponent->SetMainWeapon(Weapon);
+			}
+		}
+	}
 }
 
