@@ -7,7 +7,6 @@
 #include "NiagaraSystem.h"
 #include "Components/RagdollComponent.h"
 #include "GameFramework/Character.h"
-#include "Sound/SoundCue.h"
 #include "FremenCharacter.generated.h"
 
 class UCombatComponent;
@@ -21,7 +20,6 @@ class VOICEPROJECT_API AFremenCharacter : public ACharacter, public ICombatable
 public:
 	// Sets default values for this character's properties
 	AFremenCharacter();
-	void TrySpawnMainCharacter();
 
 protected:
 	// Called when the game starts or when spawned
@@ -30,7 +28,14 @@ protected:
 public:	
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	
+	virtual FRotator GetSignificantInputRotation(float Threshold) override;
+	virtual void AttackContinue() override;
+	virtual void ResetMovementState() override;
+	virtual bool CanReceiveDamage() override;
 
+private:
+	void TrySpawnMainWeapon();
 	void MoveForward(float AxisValue);
 	void MoveRight(float AxisValue);
 	void LookUp(float AxisValue);
@@ -41,10 +46,7 @@ public:
 	void Dodge();
 
 	virtual void Attack() override;
-	virtual void AttackContinue() override;
-	virtual void ResetMovementState() override;
-	virtual FRotator GetSignificantInputRotation(float Threshold) override;
-	
+
 	void PerformAttack(unsigned int AttackIndex, bool IsRandom = false);
 	void PerformDodge();
 
@@ -54,6 +56,12 @@ public:
 	
 	UFUNCTION()
 	void OnReceivePointDamage(AActor* DamagedActor, float Damage, class AController* InstigatedBy, FVector HitLocation, UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const UDamageType* DamageType, AActor* DamageCauser);
+	
+	UPROPERTY()
+	UCombatComponent* CombatComponent;
+	
+	UPROPERTY()
+	URagdollComponent* RagdollComponent;
 	
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<ABaseWeapon> WeaponClass;
@@ -67,20 +75,12 @@ public:
 	UPROPERTY(EditAnywhere)
 	UAnimMontage* HitMontage;
 	
-	float RotationRate = 100.f;
-
-private:
-	UPROPERTY()
-	UCombatComponent* CombatComponent;
-	
-	UPROPERTY()
-	URagdollComponent* RagdollComponent;
-	
 	UPROPERTY(EditAnywhere, Category = "Animation") // TODO: consider move montage to CombatComp or BaseWeapon or some other state machine
 	UAnimMontage* DodgeMontage;
 
 	UPROPERTY(VisibleAnywhere)
 	float Health = 100.f;
+	float RotationRate = 100.f;
 	
 	bool bIsDodging;
 	bool bIsDisabled;

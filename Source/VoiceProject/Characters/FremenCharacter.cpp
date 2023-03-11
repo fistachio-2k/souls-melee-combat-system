@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "FremenCharacter.h"
+#include "FremenCharacter.h" 
 
 #include "VoiceProject/Items/BaseWeapon.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -40,7 +40,7 @@ void AFremenCharacter::BeginPlay()
 {
 	Super::BeginPlay();		
 	OnTakePointDamage.AddUniqueDynamic(this, &AFremenCharacter::OnReceivePointDamage);
-	TrySpawnMainCharacter();
+	TrySpawnMainWeapon();
 }
 
 // Called to bind functionality to input
@@ -101,7 +101,7 @@ void AFremenCharacter::LookRight(float AxisValue)
 void AFremenCharacter::ToggleWeapon()
 {
 	Logger::Log(ELogLevel::INFO, __FUNCTION__);
-	if (bIsDodging)
+	if (bIsDead || bIsDisabled || bIsDodging || (CombatComponent && CombatComponent->bIsAttacking))
 	{
 		return;
 	}
@@ -141,7 +141,7 @@ void AFremenCharacter::Dodge()
 {
 	Logger::Log(ELogLevel::INFO, __FUNCTION__);
 	
-	if (bIsDisabled || bIsDodging || (CombatComponent && CombatComponent->bIsAttacking))
+	if (bIsDead || bIsDisabled || bIsDodging || (CombatComponent && CombatComponent->bIsAttacking))
 	{
 		return;
 	}
@@ -152,7 +152,7 @@ void AFremenCharacter::Dodge()
 void AFremenCharacter::Attack()
 {
 	Logger::Log(ELogLevel::INFO, __FUNCTION__);
-	if (bIsDisabled || bIsDodging || (CombatComponent && !CombatComponent->IsCombatEnabled()))
+	if (bIsDead || bIsDisabled || bIsDodging || (CombatComponent && !CombatComponent->IsCombatEnabled()))
 	{
 		return;
 	}
@@ -190,6 +190,11 @@ void AFremenCharacter::ResetMovementState()
 	CombatComponent->ResetCombat();
 	bIsDodging = false;
 	bIsDisabled = false;
+}
+
+bool AFremenCharacter::CanReceiveDamage()
+{
+	return !bIsDead;
 }
 
 FRotator AFremenCharacter::GetSignificantInputRotation(float Threshold)
@@ -230,11 +235,13 @@ void AFremenCharacter::PerformDeath()
 
 	bIsDead = true;
 	RagdollComponent->EnableRagdoll();
-	
+
+	// Add impact velocity
 	float InitialSpeed = 2000.f;
 	FVector HitVelocity = GetActorForwardVector() * InitialSpeed * -1;
 	GetMesh()->SetPhysicsLinearVelocity(HitVelocity, false, TEXT("Pelvis"));
 
+	// Apply physics on main weapon
 	if (ABaseWeapon* MainWeapon = CombatComponent->GetMainWeapon())
 	{
 		MainWeapon->GetItemMesh()->SetCollisionProfileName(TEXT("PhysicsActor"), true);
@@ -242,6 +249,7 @@ void AFremenCharacter::PerformDeath()
 		MainWeapon->GetItemMesh()->SetSimulatePhysics(true);
 	}
 
+	// Destroy character and weapon after delay time ends
 	FTimerHandle DeathTimer;
 	GetWorldTimerManager().SetTimer(DeathTimer, this, &AFremenCharacter::DestroyCharacter, 5.f, false);
 }
@@ -274,7 +282,7 @@ void AFremenCharacter::OnReceivePointDamage(AActor* DamagedActor, float Damage, 
 	}
 }
 
-void AFremenCharacter::TrySpawnMainCharacter()
+void AFremenCharacter::TrySpawnMainWeapon()
 {
 	if (WeaponClass != nullptr)
 	{

@@ -2,6 +2,8 @@
 
 
 #include "BaseWeapon.h"
+
+#include "Components/SphereComponent.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 #include "VoiceProject/Characters/FremenCharacter.h"
@@ -44,6 +46,7 @@ void ABaseWeapon::Interact(AActor* Caller)
 		if (UCombatComponent* CombatComponent = Cast<UCombatComponent>(ActorComponent))
 		{
 			CombatComponent->SetMainWeapon(this);
+			//TODO: Get Collider and change Object Type (no Interactable), or separate spawner interaction from actual weapon!
 		}
 	}
 }
@@ -86,6 +89,12 @@ bool ABaseWeapon::IsWeaponInHand() const
 void ABaseWeapon::WeaponHit(FHitResult HitResult)
 {
 	Logger::Log(ELogLevel::INFO, __FUNCTION__);
-	UGameplayStatics::ApplyPointDamage(HitResult.GetActor(), Damage, HitResult.ImpactNormal, HitResult, GetInstigatorController(), this,  UDamageType::StaticClass());
+	if (auto CombatableActor = Cast<ICombatable>(HitResult.GetActor()))
+	{
+		if (CombatableActor->CanReceiveDamage())
+		{
+			UGameplayStatics::ApplyPointDamage(HitResult.GetActor(), Damage, HitResult.ImpactNormal, HitResult, GetInstigatorController(), this,  UDamageType::StaticClass());
+		}
+	}
 }
 
