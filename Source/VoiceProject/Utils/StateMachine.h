@@ -2,24 +2,34 @@
 
 #include <type_traits>
 
+DECLARE_DELEGATE(FStateHandlerDelegate);
+
 template <typename E, typename = std::enable_if_t<std::is_enum_v<E>>>
 class StateMachine
 {
-	DECLARE_MULTICAST_DELEGATE_OneParam(StateModifyDelegate, E);
+	struct FStateHandler
+	{
+		FStateHandler(const E& State): State(State){}
 
-	E CurrentState;
+		E State;
+		FStateHandlerDelegate OnStateBegin;
+		// TODO: add onStateEnd
+	};
 	
 public:
-	StateMachine() = default;
-	explicit StateMachine(E CurrentState): CurrentState(CurrentState) {}
 	
 	E GetCurrentState() const { return CurrentState; }
-	void SetState(E NewState);
+	
+	void SetState(E State);
+	
+	template <class UserClass>
+	void RegisterStateHandler(E State, UserClass* InObject, void (UserClass::*OnBegin)());
 
-	StateModifyDelegate OnStateBegin;
-	StateModifyDelegate OnStateEnd;
+	void RemoveStateHandler(E State);
 
 private:
-	void StateBegins();
-	void StateEnd();
+	E CurrentState;
+	TMap<E, FStateHandler> StateHandlers;
 };
+
+#include "StateMachine.cpp"

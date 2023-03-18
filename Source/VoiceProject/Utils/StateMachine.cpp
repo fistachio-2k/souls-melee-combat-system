@@ -1,27 +1,30 @@
 ﻿#include "StateMachine.h"
 
-#include "Microsoft/AllowMicrosoftPlatformTypes.h"
-
 template <typename E, typename T0>
-void StateMachine<E, T0>::SetState(E NewState)
+void StateMachine<E, T0>::SetState(E State)
 {
-	if (NewState != CurrentState)
+	if (State != CurrentState)
 	{
-		CurrentState = NewState;
+		CurrentState = State;
+		if (StateHandlers.Contains(State))
+		{
+			StateHandlers[State].OnStateBegin.Execute();
+		}
 	}
-
-	// StateMachine<EAssociativity> test = new StateMachine();
 }
 
 template <typename E, typename T0>
-void StateMachine<E, T0>::StateBegins()
+template <class UserClass>
+void StateMachine<E, T0>::RegisterStateHandler(E State, UserClass* InObject, void (UserClass::*OnBegin)())
 {
-	OnStateBegin.Broadcast(CurrentState);
+	FStateHandler NewStateHandler = {State};
+	NewStateHandler.OnStateBegin.BindUObject(InObject, OnBegin);
+	StateHandlers.Add(State, NewStateHandler);
 }
 
 template <typename E, typename T0>
-void StateMachine<E, T0>::StateEnd()
+void StateMachine<E, T0>::RemoveStateHandler(E State)
 {
-	OnStateEnd.Broadcast(CurrentState);
+	StateHandlers.Remove(State);
 }
 
