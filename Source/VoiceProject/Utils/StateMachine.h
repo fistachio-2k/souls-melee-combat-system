@@ -9,27 +9,35 @@ class StateMachine
 {
 	struct FStateHandler
 	{
-		FStateHandler(const E& State): State(State){}
-
+		FStateHandler() = default;
+		FStateHandler(E State, const TSet<E>& OriginStates): State(State), OriginStates(OriginStates) {}
+		
 		E State;
+		TSet<E> OriginStates;
+		
 		FStateHandlerDelegate OnStateBegin;
-		// TODO: add onStateEnd
+		FStateHandlerDelegate OnStateEnd;
 	};
 	
 public:
-	
-	E GetCurrentState() const { return CurrentState; }
-	
-	void SetState(E State);
-	
-	template <class UserClass>
-	void RegisterStateHandler(E State, UserClass* InObject, void (UserClass::*OnBegin)());
+	StateMachine() = default;
+	explicit StateMachine(E InitialState, const TSet<E>& OriginStates = TSet<E>())
+	{
+		CurrentState = InitialState;
+		RegisterStateHandler(InitialState, OriginStates);
+	}
 
+	template <class UserClass>
+	void RegisterStateHandler(E State, const TSet<E>& OriginStates, UserClass* InObject, void (UserClass::*OnBegin)(), void (UserClass::*OnEnd)() = nullptr);
+	void RegisterStateHandler(E State, const TSet<E>& OriginStates);
 	void RemoveStateHandler(E State);
+	bool MoveToState(E State);
+	bool CanMoveToState(E State) const;
+	E GetCurrentState() const { return CurrentState; }
 
 private:
 	E CurrentState;
-	TMap<E, FStateHandler> StateHandlers;
+	TMap<E, FStateHandler> HandlersMap;
 };
 
 #include "StateMachine.cpp"
