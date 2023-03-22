@@ -21,11 +21,8 @@ class StateMachine
 	
 public:
 	StateMachine() = default;
-	explicit StateMachine(E InitialState, const TSet<E>& OriginStates = TSet<E>())
-	{
-		CurrentState = InitialState;
-		RegisterStateHandler(InitialState, OriginStates);
-	}
+	explicit StateMachine(E InitialState) : CurrentState(InitialState)
+	{}
 
 	template <class UserClass>
 	void RegisterStateHandler(E State, const TSet<E>& OriginStates, UserClass* InObject, void (UserClass::*OnBegin)(), void (UserClass::*OnEnd)() = nullptr);

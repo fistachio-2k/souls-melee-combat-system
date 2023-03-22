@@ -5,18 +5,18 @@
 template <typename E, typename T0>
 bool StateMachine<E, T0>::MoveToState(E State)
 {
-	if (State != CurrentState && HandlersMap.Contains(State))
+	if (HandlersMap.Contains(State))
 	{
 		FStateHandler NextStateHandler = HandlersMap[State];
 		if (NextStateHandler.OriginStates.Contains(CurrentState))
 		{
 			if (HandlersMap.Contains(CurrentState))
 			{
-				HandlersMap[CurrentState].OnStateEnd.Execute();
+				HandlersMap[CurrentState].OnStateEnd.ExecuteIfBound();
 			}
 			
 			CurrentState = State;
-			HandlersMap[CurrentState].OnStateBegin.Execute();
+			HandlersMap[CurrentState].OnStateBegin.ExecuteIfBound();
 			
 			return true;
 		}
@@ -44,7 +44,7 @@ void StateMachine<E, T0>::RegisterStateHandler(E State, const TSet<E>& OriginSta
 	
 	if (OnEnd)
 	{
-		StateHandler.OnStateBegin.BindUObject(InObject, OnEnd);
+		StateHandler.OnStateEnd.BindUObject(InObject, OnEnd);
 	}
 	
 	HandlersMap.Add(State, StateHandler);
