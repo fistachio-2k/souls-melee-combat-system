@@ -3,15 +3,17 @@
 
 #include "FremenCharacter.h" 
 
-#include "VoiceProject/Items/BaseWeapon.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
-#include "VoiceProject/Components/CombatComponent.h"
-#include "VoiceProject/Items/Interactable.h"
-#include "VoiceProject/Utils/Logger.h"
 #include "NiagaraFunctionLibrary.h"
+#include "Components/CombatComponent.h"
 #include "Components/RagdollComponent.h"
+#include "LatentActions/ChangeCharacterMaxSpeedAction.h"
+#include "Items/BaseWeapon.h"
+#include "Items/Interactable.h"
+#include "Misc/TextFilterExpressionEvaluator.h"
+#include "Utils/Logger.h"
 
 // Sets default values
 AFremenCharacter::AFremenCharacter()
@@ -27,6 +29,7 @@ AFremenCharacter::AFremenCharacter()
 	// Configure character movement
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
+	GetCharacterMovement()->MaxWalkSpeed = Walking; // Character move speed is bound to walking.
 
 	CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	AddOwnedComponent(CombatComponent);
@@ -71,6 +74,8 @@ void AFremenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction(TEXT("Attack"), IE_Pressed, this, &AFremenCharacter::Attack);
 	PlayerInputComponent->BindAction(TEXT("Interact"), IE_Pressed, this, &AFremenCharacter::Interact);
 	PlayerInputComponent->BindAction(TEXT("Dodge"), IE_Pressed, this, &AFremenCharacter::Dodge);
+	PlayerInputComponent->BindAction(TEXT("Sprint"), IE_Pressed, this, &AFremenCharacter::ToggleSprint);
+	PlayerInputComponent->BindAction(TEXT("Sprint"), IE_Released, this, &AFremenCharacter::ToggleWalk);
 }
 
 void AFremenCharacter::MoveForward(float AxisValue)
@@ -110,6 +115,31 @@ void AFremenCharacter::LookUp(float AxisValue)
 void AFremenCharacter::LookRight(float AxisValue)
 {
 	AddControllerYawInput(AxisValue * RotationRate * GetWorld()->GetDeltaSeconds());
+}
+
+void AFremenCharacter::ToggleSprint()
+{
+	Logger::Log(ELogLevel::INFO, __FUNCTION__);
+	Logger::Log(ELogLevel::INFO,  FString::Printf(TEXT("speed: %f"), GetVelocity().Length()));
+	if (ChangeMovementSpeedLatentAction)
+	{
+		ChangeMovementSpeedLatentAction->Done();
+	}
+
+	ChangeMovementSpeedLatentAction = new FChangeCharacterMaxSpeedAction(Sprinting, GetCharacterMovement()->MaxWalkSpeed, 1.f);
+	GetWorld()->GetLatentActionManager().AddNewAction(this, 0, ChangeMovementSpeedLatentAction);
+}
+
+void AFremenCharacter::ToggleWalk()
+{
+	Logger::Log(ELogLevel::INFO, __FUNCTION__);
+	if (ChangeMovementSpeedLatentAction)
+	{
+		ChangeMovementSpeedLatentAction->Done();
+	}
+	
+	ChangeMovementSpeedLatentAction = new FChangeCharacterMaxSpeedAction(Walking, GetCharacterMovement()->MaxWalkSpeed, 1.f);
+	GetWorld()->GetLatentActionManager().AddNewAction(this, 0, ChangeMovementSpeedLatentAction);
 }
 
 void AFremenCharacter::ToggleWeapon()

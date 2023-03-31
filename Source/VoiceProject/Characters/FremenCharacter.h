@@ -5,15 +5,16 @@
 #include "CoreMinimal.h"
 #include "Combatable.h"
 #include "NiagaraSystem.h"
-#include "Components/RagdollComponent.h"
 #include "GameFramework/Character.h"
 #include "Utils/StateMachine.h"
 #include "FremenCharacter.generated.h"
 
 class UCombatComponent;
+class URagdollComponent;
 class ABaseWeapon;
+class FChangeCharacterMaxSpeedAction;
 
-enum CharacterStates
+enum ECharacterStates
 {
 	Idle,
 	Attacking,
@@ -23,6 +24,12 @@ enum CharacterStates
 	Dead
 };
 
+// TODO: move me to a blueprint visible class variable.
+enum ECharacterMovementMode
+{
+	Walking = 400,
+	Sprinting = 800
+};
 
 UCLASS()
 class VOICEPROJECT_API AFremenCharacter : public ACharacter, public ICombatable
@@ -32,9 +39,6 @@ class VOICEPROJECT_API AFremenCharacter : public ACharacter, public ICombatable
 public:
 	// Sets default values for this character's properties
 	AFremenCharacter();
-	void InstallStateMachineHandlers();
-
-	StateMachine<CharacterStates> CharacterStateMachine;
 
 protected:
 	// Called when the game starts or when spawned
@@ -48,6 +52,8 @@ public:
 	virtual void AttackContinue() override;
 	virtual void ResetMovementState() override;
 	virtual bool CanReceiveDamage() override;
+	
+	void InstallStateMachineHandlers();
 
 private:
 	void TrySpawnMainWeapon();
@@ -55,7 +61,9 @@ private:
 	void MoveRight(float AxisValue);
 	void LookUp(float AxisValue);
 	void LookRight(float AxisValue);
-	
+
+	void ToggleSprint();
+	void ToggleWalk();
 	void ToggleWeapon();
 	void Interact();
 	void Dodge();
@@ -96,4 +104,8 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	float Health = 100.f;
 	float RotationRate = 100.f;
+
+	StateMachine<ECharacterStates> CharacterStateMachine;
+
+	FChangeCharacterMaxSpeedAction* ChangeMovementSpeedLatentAction;
 };
