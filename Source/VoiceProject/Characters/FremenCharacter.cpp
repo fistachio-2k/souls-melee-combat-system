@@ -33,12 +33,26 @@ AFremenCharacter::AFremenCharacter()
 
 	RagdollComponent = CreateDefaultSubobject<URagdollComponent>(TEXT("RagdollComponent"));
 	AddOwnedComponent(RagdollComponent);
+
+	CharacterStateMachine = StateMachine(Idle);
+}
+
+void AFremenCharacter::InstallStateMachineHandlers()
+{
+	CharacterStateMachine.RegisterStateHandler(Idle, TSet{Attacking, Dodging, Disabled, GeneralAction});
+	CharacterStateMachine.RegisterStateHandler(GeneralAction, TSet{Idle});
+	CharacterStateMachine.RegisterStateHandler(Attacking, TSet{Idle});
+	CharacterStateMachine.RegisterStateHandler(Dodging, TSet{Idle});
+	CharacterStateMachine.RegisterStateHandler(Disabled, TSet{Idle, Attacking, Dodging, Dead, GeneralAction});
+	CharacterStateMachine.RegisterStateHandler(Dead, TSet{Idle, Disabled, Attacking, Dodging, Dead, GeneralAction}, this, &AFremenCharacter::PerformDeath);
 }
 
 // Called when the game starts or when spawned
 void AFremenCharacter::BeginPlay()
 {
-	Super::BeginPlay();		
+	Super::BeginPlay();
+	
+	InstallStateMachineHandlers();
 	OnTakePointDamage.AddUniqueDynamic(this, &AFremenCharacter::OnReceivePointDamage);
 	TrySpawnMainWeapon();
 }
@@ -101,20 +115,23 @@ void AFremenCharacter::LookRight(float AxisValue)
 void AFremenCharacter::ToggleWeapon()
 {
 	Logger::Log(ELogLevel::INFO, __FUNCTION__);
-	if (bIsDead || bIsDisabled || bIsDodging || (CombatComponent && CombatComponent->bIsAttacking))
+	if (CharacterStateMachine.MoveToState(GeneralAction))
 	{
-		return;
-	}
-	
-	if (const ABaseWeapon* MainWeapon = CombatComponent->GetMainWeapon())
-	{
-		if (UAnimMontage* Montage = CombatComponent->IsCombatEnabled() ? MainWeapon->SheatheWeaponMontage : MainWeapon->DrawWeaponMontage)
+		if (const ABaseWeapon* MainWeapon = CombatComponent->GetMainWeapon())
 		{
-			Logger::Log(ELogLevel::INFO, FString::Printf(TEXT("play %s"), *Montage->GetName()));
+			if (UAnimMontage* Montage = CombatComponent->IsCombatEnabled() ? MainWeapon->SheatheWeaponMontage : MainWeapon->DrawWeaponMontage)
+			{
+				Logger::Log(ELogLevel::INFO, FString::Printf(TEXT("play %s"), *Montage->GetName()));
 
-			PlayAnimMontage(Montage);
+				PlayAnimMontage(Montage);
+			}
+		}
+		else
+		{
+			CharacterStateMachine.MoveToState(Idle);
 		}
 	}
+	
 }
 
 void AFremenCharacter::Interact()
@@ -141,27 +158,25 @@ void AFremenCharacter::Dodge()
 {
 	Logger::Log(ELogLevel::INFO, __FUNCTION__);
 	
-	if (bIsDead || bIsDisabled || bIsDodging || (CombatComponent && CombatComponent->bIsAttacking))
+	if (CharacterStateMachine.MoveToState(Dodging))
 	{
-		return;
+		PerformDodge();
 	}
-
-	PerformDodge();
 }
 
 void AFremenCharacter::Attack()
 {
 	Logger::Log(ELogLevel::INFO, __FUNCTION__);
-	if (bIsDead || bIsDisabled || bIsDodging || (CombatComponent && !CombatComponent->IsCombatEnabled()))
+	if ((CombatComponent && !CombatComponent->IsCombatEnabled()))
 	{
 		return;
 	}
-	
-	if (CombatComponent->bIsAttacking)
+
+	if (CharacterStateMachine.GetCurrentState() == Attacking )
 	{
 		CombatComponent->bIsAttackSaved = true;
-	}
-	else
+		
+	} else if (CharacterStateMachine.MoveToState(Attacking))
 	{
 		PerformAttack(CombatComponent->AttackCount, false);
 	}
@@ -174,7 +189,9 @@ void AFremenCharacter::AttackContinue()
 		return;
 	}
 
+	CharacterStateMachine.MoveToState(Idle);
 	CombatComponent->bIsAttacking = false;
+	
 	if (CombatComponent->bIsAttackSaved)
 	{
 		CombatComponent->bIsAttackSaved = false;
@@ -187,14 +204,13 @@ void AFremenCharacter::AttackContinue()
 
 void AFremenCharacter::ResetMovementState()
 {
+	CharacterStateMachine.MoveToState(Idle);
 	CombatComponent->ResetCombat();
-	bIsDodging = false;
-	bIsDisabled = false;
 }
 
 bool AFremenCharacter::CanReceiveDamage()
 {
-	return !bIsDead;
+	return CharacterStateMachine.GetCurrentState() != Dead;
 }
 
 FRotator AFremenCharacter::GetSignificantInputRotation(float Threshold)
@@ -225,20 +241,18 @@ void AFremenCharacter::PerformAttack(unsigned int AttackIndex, bool IsRandom)
 
 void AFremenCharacter::PerformDodge()
 {
-	bIsDodging = true;
 	PlayAnimMontage(DodgeMontage);
 }
 
 void AFremenCharacter::PerformDeath()
 {
 	Logger::Log(ELogLevel::DEBUG, __FUNCTION__);
-
-	bIsDead = true;
+	
 	RagdollComponent->EnableRagdoll();
 
 	// Add impact velocity
-	float InitialSpeed = 2000.f;
-	FVector HitVelocity = GetActorForwardVector() * InitialSpeed * -1;
+	constexpr float InitialSpeed = 2000.f;
+	const FVector HitVelocity = GetActorForwardVector() * InitialSpeed * -1;
 	GetMesh()->SetPhysicsLinearVelocity(HitVelocity, false, TEXT("Pelvis"));
 
 	// Apply physics on main weapon
@@ -273,12 +287,12 @@ void AFremenCharacter::OnReceivePointDamage(AActor* DamagedActor, float Damage, 
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(),HitCue, HitLocation);
 	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), BloodEmitter, HitLocation, ShotFromDirection.Rotation());
 	PlayAnimMontage(HitMontage);
-	bIsDisabled = true;
+	CharacterStateMachine.MoveToState(Disabled);
 	Health -= Damage;
-
+	
 	if (Health <= 0)
 	{
-		PerformDeath();
+		CharacterStateMachine.MoveToState(Dead);
 	}
 }
 

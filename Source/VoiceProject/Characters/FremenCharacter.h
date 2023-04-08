@@ -7,10 +7,22 @@
 #include "NiagaraSystem.h"
 #include "Components/RagdollComponent.h"
 #include "GameFramework/Character.h"
+#include "Utils/StateMachine.h"
 #include "FremenCharacter.generated.h"
 
 class UCombatComponent;
 class ABaseWeapon;
+
+enum CharacterStates
+{
+	Idle,
+	Attacking,
+	Dodging,
+	GeneralAction,
+	Disabled,
+	Dead
+};
+
 
 UCLASS()
 class VOICEPROJECT_API AFremenCharacter : public ACharacter, public ICombatable
@@ -20,12 +32,15 @@ class VOICEPROJECT_API AFremenCharacter : public ACharacter, public ICombatable
 public:
 	// Sets default values for this character's properties
 	AFremenCharacter();
+	void InstallStateMachineHandlers();
+
+	StateMachine<CharacterStates> CharacterStateMachine;
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
@@ -81,8 +96,4 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	float Health = 100.f;
 	float RotationRate = 100.f;
-	
-	bool bIsDodging;
-	bool bIsDisabled;
-	bool bIsDead;
 };
