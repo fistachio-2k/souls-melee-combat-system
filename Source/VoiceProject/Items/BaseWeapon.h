@@ -10,6 +10,14 @@
 
 class UCollisionTraceComponent;
 
+enum EAttackType
+{
+	Light,
+	Heavy,
+	Charge,
+	Sprint
+};
+
 UCLASS()
 class VOICEPROJECT_API ABaseWeapon : public AActor, public IEquippable, public IInteractable
 {
@@ -31,7 +39,8 @@ public:
 	virtual void AttachActor(FName SocketNameToAttach) override;
 	virtual UPrimitiveComponent* GetItemMesh() override;
 	bool IsWeaponInHand() const;
-	
+	TArray<UAnimMontage*> GetAttackMontages(EAttackType AttackType) const;
+
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* MeshComponent;
 	
@@ -45,7 +54,10 @@ public:
 	UAnimMontage* SheatheWeaponMontage;
 	
 	UPROPERTY(EditAnywhere, Category = "Animation")
-	TArray<UAnimMontage*> AttackMontages;
+	TArray<UAnimMontage*> LightAttackMontages;
+
+	UPROPERTY(EditAnywhere, Category = "Animation")
+	TArray<UAnimMontage*> HeavyAttackMontages;
 	
 	UPROPERTY(EditAnywhere, Category = "Animation")
 	FName HeapSocketName;

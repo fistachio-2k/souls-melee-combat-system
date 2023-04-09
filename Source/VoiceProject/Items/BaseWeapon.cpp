@@ -86,6 +86,19 @@ bool ABaseWeapon::IsWeaponInHand() const
 	return bIsHandEquipped;
 }
 
+TArray<UAnimMontage*> ABaseWeapon::GetAttackMontages(EAttackType AttackType) const
+{
+	switch (AttackType)
+	{
+	case Light:
+		return LightAttackMontages;
+	case Heavy:
+		return HeavyAttackMontages;
+	default:
+		return TArray<UAnimMontage*>();
+	}
+}
+
 void ABaseWeapon::WeaponHit(FHitResult HitResult)
 {
 	Logger::Log(ELogLevel::INFO, __FUNCTION__);

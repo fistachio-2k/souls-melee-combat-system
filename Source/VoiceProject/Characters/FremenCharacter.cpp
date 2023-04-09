@@ -69,6 +69,7 @@ void AFremenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	PlayerInputComponent->BindAction(TEXT("ToggleWeapon"), IE_Pressed, this, &AFremenCharacter::ToggleWeapon);
 	PlayerInputComponent->BindAction(TEXT("Attack"), IE_Pressed, this, &AFremenCharacter::Attack);
+	PlayerInputComponent->BindAction(TEXT("HeavyAttack"), IE_Pressed, this, &AFremenCharacter::HeavyAttack);
 	PlayerInputComponent->BindAction(TEXT("Interact"), IE_Pressed, this, &AFremenCharacter::Interact);
 	PlayerInputComponent->BindAction(TEXT("Dodge"), IE_Pressed, this, &AFremenCharacter::Dodge);
 }
@@ -178,7 +179,25 @@ void AFremenCharacter::Attack()
 		
 	} else if (CharacterStateMachine.MoveToState(Attacking))
 	{
-		PerformAttack(CombatComponent->AttackCount, false);
+		PerformAttack(Light, false);
+	}
+}
+
+void AFremenCharacter::HeavyAttack()
+{
+	Logger::Log(ELogLevel::INFO, __FUNCTION__);
+	if ((CombatComponent && !CombatComponent->IsCombatEnabled()))
+	{
+		return;
+	}
+
+	if (CharacterStateMachine.GetCurrentState() == Attacking )
+	{
+		CombatComponent->bIsAttackSaved = true;
+		
+	} else if (CharacterStateMachine.MoveToState(Attacking))
+	{
+		PerformAttack(Heavy, false);
 	}
 }
 
@@ -197,7 +216,7 @@ void AFremenCharacter::AttackContinue()
 		CombatComponent->bIsAttackSaved = false;
 		if (CombatComponent->IsCombatEnabled())
 		{
-			PerformAttack(CombatComponent->AttackCount);
+			PerformAttack(Light);
 		}
 	}
 }
@@ -224,10 +243,10 @@ FRotator AFremenCharacter::GetSignificantInputRotation(float Threshold)
 	return GetActorRotation();
 }
 
-void AFremenCharacter::PerformAttack(unsigned int AttackIndex, bool IsRandom)
+void AFremenCharacter::PerformAttack(EAttackType AttackType ,bool IsRandom)
 {
-	TArray<UAnimMontage*>& MontagesArray = CombatComponent->GetMainWeapon()->AttackMontages;
-	int Index = IsRandom ? FMath::RandRange(0, MontagesArray.Num()) : AttackIndex;
+	TArray<UAnimMontage*> MontagesArray = CombatComponent->GetMainWeapon()->GetAttackMontages(AttackType);
+	const int Index = IsRandom ? FMath::RandRange(0, MontagesArray.Num()) : CombatComponent->AttackCount;
 
 	if (Index < MontagesArray.Num())
 	{
