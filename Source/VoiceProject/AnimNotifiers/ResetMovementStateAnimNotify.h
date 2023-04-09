@@ -10,9 +10,9 @@
  * 
  */
 UCLASS()
-class VOICEPROJECT_API UResetAttackAnimNotify : public UAnimNotify
+class VOICEPROJECT_API UResetMovementStateAnimNotify : public UAnimNotify
 {
 	GENERATED_BODY()
-
+	
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
 };
