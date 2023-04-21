@@ -68,7 +68,8 @@ void AFremenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
     PlayerInputComponent->BindAxis(TEXT("LookRight"), this, &AFremenCharacter::LookRight);
 
 	PlayerInputComponent->BindAction(TEXT("ToggleWeapon"), IE_Pressed, this, &AFremenCharacter::ToggleWeapon);
-	PlayerInputComponent->BindAction(TEXT("Attack"), IE_Pressed, this, &AFremenCharacter::Attack);
+	PlayerInputComponent->BindAction(TEXT("Attack"), IE_Released, this, &AFremenCharacter::Attack);
+	PlayerInputComponent->BindAction(TEXT("Attack"), IE_Pressed, this, &AFremenCharacter::StartChargeAttack);
 	PlayerInputComponent->BindAction(TEXT("HeavyAttack"), IE_Pressed, this, &AFremenCharacter::HeavyAttack);
 	PlayerInputComponent->BindAction(TEXT("Interact"), IE_Pressed, this, &AFremenCharacter::Interact);
 	PlayerInputComponent->BindAction(TEXT("Dodge"), IE_Pressed, this, &AFremenCharacter::Dodge);
@@ -172,20 +173,41 @@ void AFremenCharacter::Attack()
 	{
 		return;
 	}
-
+	
 	if (CharacterStateMachine.GetCurrentState() == Attacking )
 	{
 		CombatComponent->bIsAttackSaved = true;
 		
 	} else if (CharacterStateMachine.MoveToState(Attacking))
 	{
+		if (bIsChargedAttackReady)
+		{
+			PerformAttack(Charge);
+			return;
+		}
+		
 		PerformAttack(Light, false);
 	}
+
+	ClearChargeAttack();
+}
+
+void AFremenCharacter::ClearChargeAttack()
+{
+	if (GetWorldTimerManager().IsTimerActive(ChargeAttackTimerHandle))
+	{
+		GetWorldTimerManager().ClearTimer(ChargeAttackTimerHandle);
+	}
+	
+	bIsChargedAttackReady = false;
 }
 
 void AFremenCharacter::HeavyAttack()
 {
 	Logger::Log(ELogLevel::INFO, __FUNCTION__);
+	
+	ClearChargeAttack();
+	
 	if ((CombatComponent && !CombatComponent->IsCombatEnabled()))
 	{
 		return;
@@ -193,12 +215,25 @@ void AFremenCharacter::HeavyAttack()
 
 	if (CharacterStateMachine.GetCurrentState() == Attacking )
 	{
-		CombatComponent->bIsAttackSaved = true;
-		
-	} else if (CharacterStateMachine.MoveToState(Attacking))
+		return;
+	}
+
+	if (CharacterStateMachine.MoveToState(Attacking))
 	{
 		PerformAttack(Heavy, false);
 	}
+}
+
+void AFremenCharacter::StartChargeAttack()
+{
+	FTimerDelegate SetChargeAttackReadyCallback;
+	SetChargeAttackReadyCallback.BindLambda([this]
+	{
+		Logger::Log(ELogLevel::INFO, "Charged Attack Ready!");
+		bIsChargedAttackReady = true;
+	});
+
+	GetWorldTimerManager().SetTimer(ChargeAttackTimerHandle, SetChargeAttackReadyCallback, ChargeAttackDuration, false);
 }
 
 void AFremenCharacter::AttackContinue()

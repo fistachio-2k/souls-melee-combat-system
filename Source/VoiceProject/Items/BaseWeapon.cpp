@@ -94,6 +94,8 @@ TArray<UAnimMontage*> ABaseWeapon::GetAttackMontages(EAttackType AttackType) con
 		return LightAttackMontages;
 	case Heavy:
 		return HeavyAttackMontages;
+	case Charge:
+		return ChargeAttackMontages;
 	default:
 		return TArray<UAnimMontage*>();
 	}
@@ -102,7 +104,7 @@ TArray<UAnimMontage*> ABaseWeapon::GetAttackMontages(EAttackType AttackType) con
 void ABaseWeapon::WeaponHit(FHitResult HitResult)
 {
 	Logger::Log(ELogLevel::INFO, __FUNCTION__);
-	if (auto CombatableActor = Cast<ICombatable>(HitResult.GetActor()))
+	if (const auto CombatableActor = Cast<ICombatable>(HitResult.GetActor()))
 	{
 		if (CombatableActor->CanReceiveDamage())
 		{

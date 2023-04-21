@@ -62,7 +62,9 @@ private:
 	void Dodge();
 
 	virtual void Attack() override;
+	void ClearChargeAttack();
 	void HeavyAttack();
+	void StartChargeAttack();
 
 	void PerformAttack(EAttackType AttackType, bool IsRandom = false);
 	void PerformDodge();
@@ -97,5 +99,11 @@ private:
 
 	UPROPERTY(VisibleAnywhere)
 	float Health = 100.f;
+
+	UPROPERTY(EditAnywhere)
+	float ChargeAttackDuration = 0.5f;
+	
 	float RotationRate = 100.f;
+	bool bIsChargedAttackReady = false;
+	FTimerHandle ChargeAttackTimerHandle;
 };

@@ -58,6 +58,9 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Animation")
 	TArray<UAnimMontage*> HeavyAttackMontages;
+
+	UPROPERTY(EditAnywhere, Category = "Animation")
+	TArray<UAnimMontage*> ChargeAttackMontages;
 	
 	UPROPERTY(EditAnywhere, Category = "Animation")
 	FName HeapSocketName;
