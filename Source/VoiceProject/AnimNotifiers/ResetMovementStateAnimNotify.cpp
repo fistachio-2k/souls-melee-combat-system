@@ -4,7 +4,7 @@
 #include "ResetMovementStateAnimNotify.h"
 #include "VoiceProject/Characters/FremenCharacter.h"
 
-void UResetAttackAnimNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
+void UResetMovementStateAnimNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
                                     const FAnimNotifyEventReference& EventReference)
 {
 	Super::Notify(MeshComp, Animation, EventReference);

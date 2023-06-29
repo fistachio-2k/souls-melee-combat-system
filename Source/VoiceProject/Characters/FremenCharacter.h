@@ -7,6 +7,7 @@
 #include "NiagaraSystem.h"
 #include "Components/RagdollComponent.h"
 #include "GameFramework/Character.h"
+#include "Items/BaseWeapon.h"
 #include "Utils/StateMachine.h"
 #include "FremenCharacter.generated.h"
 
@@ -61,8 +62,11 @@ private:
 	void Dodge();
 
 	virtual void Attack() override;
+	void ClearChargeAttack();
+	void HeavyAttack();
+	void StartChargeAttack();
 
-	void PerformAttack(unsigned int AttackIndex, bool IsRandom = false);
+	void PerformAttack(EAttackType AttackType, bool IsRandom = false);
 	void PerformDodge();
 
 	UFUNCTION(BlueprintCallable, Category = "Test")
@@ -87,7 +91,7 @@ private:
 	UPROPERTY(EditAnywhere)
 	UNiagaraSystem* BloodEmitter;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Animation")
 	UAnimMontage* HitMontage;
 	
 	UPROPERTY(EditAnywhere, Category = "Animation") // TODO: consider move montage to CombatComp or BaseWeapon or some other state machine
@@ -95,5 +99,11 @@ private:
 
 	UPROPERTY(VisibleAnywhere)
 	float Health = 100.f;
+
+	UPROPERTY(EditAnywhere)
+	float ChargeAttackDuration = 0.5f;
+	
 	float RotationRate = 100.f;
+	bool bIsChargedAttackReady = false;
+	FTimerHandle ChargeAttackTimerHandle;
 };

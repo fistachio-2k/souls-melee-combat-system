@@ -86,10 +86,25 @@ bool ABaseWeapon::IsWeaponInHand() const
 	return bIsHandEquipped;
 }
 
+TArray<UAnimMontage*> ABaseWeapon::GetAttackMontages(EAttackType AttackType) const
+{
+	switch (AttackType)
+	{
+	case Light:
+		return LightAttackMontages;
+	case Heavy:
+		return HeavyAttackMontages;
+	case Charge:
+		return ChargeAttackMontages;
+	default:
+		return TArray<UAnimMontage*>();
+	}
+}
+
 void ABaseWeapon::WeaponHit(FHitResult HitResult)
 {
 	Logger::Log(ELogLevel::INFO, __FUNCTION__);
-	if (auto CombatableActor = Cast<ICombatable>(HitResult.GetActor()))
+	if (const auto CombatableActor = Cast<ICombatable>(HitResult.GetActor()))
 	{
 		if (CombatableActor->CanReceiveDamage())
 		{
