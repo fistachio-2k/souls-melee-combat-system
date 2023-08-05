@@ -8,6 +8,8 @@
 #include "Characters/Focusable.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Utils/Logger.h"
 
@@ -53,7 +55,7 @@ void UFocusComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 		return;
 	}
 	
-	// ...
+	UpdateFocus();
 }
 
 void UFocusComponent::ToggleFocus()
@@ -63,6 +65,7 @@ void UFocusComponent::ToggleFocus()
 	if (bIsInFocus)
 	{
 		bIsInFocus = false;
+		SetRotationMode(OrientToCamera);
 	}
 	else
 	{
@@ -80,6 +83,41 @@ void UFocusComponent::Focus()
 		UpdateOwnerRotationMode();
 		bIsInFocus = true;
 	}
+}
+
+void UFocusComponent::ChangeRotation()
+{
+	constexpr int Threshold = 100;
+	const FVector SourceLocation = GetOwner()->GetActorLocation();
+	const FVector TargetLocation = Cast<AActor>(ActorInFocus)->GetActorLocation() - FVector(0, 0, Threshold);
+			
+	// Calculate the rotation from the source location to the target location
+	const FRotator LockAtRotation = UKismetMathLibrary::FindLookAtRotation(SourceLocation, TargetLocation);
+
+	// Interpolate rotation according to speed
+	const auto InterpolatedRotation = UKismetMathLibrary::RInterpTo(OwnerController->GetControlRotation(), LockAtRotation, UGameplayStatics::GetWorldDeltaSeconds(GetWorld()), Speed) ;
+			
+	// Set rotation values
+	const float Pitch = InterpolatedRotation.Pitch;
+	const float Yaw = InterpolatedRotation.Yaw;
+	const float Roll = OwnerController->GetControlRotation().Roll;;
+
+	// Set owner rotation
+	OwnerController->SetControlRotation(FRotator(Pitch, Yaw, Roll));
+}
+
+void UFocusComponent::UpdateFocus()
+{
+	if (OwnerCharacter && OwnerController)
+	{
+		if (ActorInFocus->CanBeFocused())
+		{
+			ChangeRotation();
+			return;
+		}
+	}
+	
+	ToggleFocus(); // Toggle focus off
 }
 
 bool UFocusComponent::FindTarget(IFocusable** OutFocusable)

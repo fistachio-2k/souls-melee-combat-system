@@ -36,18 +36,20 @@ protected:
 
 private:
 	void Focus();
+	void ChangeRotation();
+	void UpdateFocus();
 	bool FindTarget(IFocusable**);
 	void SetRotationMode(ERelativeOrientation OrientTo) const;
 	void UpdateOwnerRotationMode();
 	bool bIsInFocus;
+	IFocusable* ActorInFocus;
 	
 	UPROPERTY(EditAnywhere, Category="Debug")
 	TEnumAsByte<EDrawDebugTrace::Type> DebugTrace;
-	
 	UPROPERTY(EditAnywhere)
 	float FocusDistance = 500.f;
-	
-	IFocusable* ActorInFocus;
+	UPROPERTY(EditAnywhere)
+	float Speed = 9;
 	
 	UPROPERTY()
 	ACharacter* OwnerCharacter;
