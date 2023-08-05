@@ -24,6 +24,8 @@ class VOICEPROJECT_API UFocusComponent : public UActorComponent
 public:	
 	// Sets default values for this component's properties
 	UFocusComponent();
+	
+	void ToggleFocus();
 
 protected:
 	// Called when the game starts
@@ -32,15 +34,13 @@ protected:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	void ToggleFocus();
-
 private:
 	void Focus();
-	void ChangeRotation();
+	void ChangeRotation() const;
 	void UpdateFocus();
 	bool FindTarget(IFocusable**);
 	void SetRotationMode(ERelativeOrientation OrientTo) const;
-	void UpdateOwnerRotationMode();
+	void UpdateOwnerRotationMode() const;
 	bool bIsInFocus;
 	IFocusable* ActorInFocus;
 	

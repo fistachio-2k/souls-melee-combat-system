@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Combatable.h"
+#include "Focusable.h"
 #include "NiagaraSystem.h"
 #include "Components/RagdollComponent.h"
 #include "GameFramework/Character.h"
@@ -11,6 +12,7 @@
 #include "Utils/StateMachine.h"
 #include "FremenCharacter.generated.h"
 
+class UFocusComponent;
 class UCombatComponent;
 class ABaseWeapon;
 
@@ -25,7 +27,7 @@ enum ECharacterStates
 };
 
 UCLASS()
-class VOICEPROJECT_API AFremenCharacter : public ACharacter, public ICombatable
+class VOICEPROJECT_API AFremenCharacter : public ACharacter, public ICombatable, public IFocusable
 {
 	GENERATED_BODY()
 
@@ -48,6 +50,9 @@ public:
 	virtual void AttackContinue() override;
 	virtual void ResetMovementState() override;
 	virtual bool CanReceiveDamage() override;
+	
+	virtual bool CanBeFocused() override;
+	virtual void OnFocused(bool bIsFocused) override;
 
 private:
 	void TrySpawnMainWeapon();
@@ -59,6 +64,7 @@ private:
 	void ToggleWeapon();
 	void Interact();
 	void Dodge();
+	void Focus();
 
 	virtual void Attack() override;
 	void ClearChargeAttack();
@@ -80,6 +86,9 @@ private:
 	
 	UPROPERTY()
 	URagdollComponent* RagdollComponent;
+
+	UPROPERTY()
+	UFocusComponent* FocusComponent;
 	
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<ABaseWeapon> WeaponClass;

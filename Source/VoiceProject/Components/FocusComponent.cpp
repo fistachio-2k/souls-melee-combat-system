@@ -28,7 +28,8 @@ UFocusComponent::UFocusComponent()
 void UFocusComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
+	SetComponentTickEnabled(false);
 	OwnerCharacter = Cast<ACharacter>(GetOwner());
 	if (OwnerCharacter != nullptr)
 	{
@@ -60,8 +61,6 @@ void UFocusComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 
 void UFocusComponent::ToggleFocus()
 {
-	SetComponentTickEnabled(!bIsInFocus);
-	
 	if (bIsInFocus)
 	{
 		bIsInFocus = false;
@@ -71,6 +70,8 @@ void UFocusComponent::ToggleFocus()
 	{
 		Focus();
 	}
+	
+	SetComponentTickEnabled(bIsInFocus);
 }
 
 
@@ -85,9 +86,9 @@ void UFocusComponent::Focus()
 	}
 }
 
-void UFocusComponent::ChangeRotation()
+void UFocusComponent::ChangeRotation() const
 {
-	constexpr int Threshold = 100;
+	constexpr int Threshold = 0;
 	const FVector SourceLocation = GetOwner()->GetActorLocation();
 	const FVector TargetLocation = Cast<AActor>(ActorInFocus)->GetActorLocation() - FVector(0, 0, Threshold);
 			
@@ -164,7 +165,7 @@ void UFocusComponent::SetRotationMode(ERelativeOrientation OrientTo) const
 	}
 }
 
-void UFocusComponent::UpdateOwnerRotationMode()
+void UFocusComponent::UpdateOwnerRotationMode() const
 {
 	const auto CombatComponent = Cast<UCombatComponent>(OwnerCharacter->GetComponentByClass(UCombatComponent::StaticClass()));
 	if (CombatComponent && CombatComponent->IsCombatEnabled() && bIsInFocus)
