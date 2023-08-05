@@ -14,7 +14,7 @@
 class UCombatComponent;
 class ABaseWeapon;
 
-enum CharacterStates
+enum ECharacterStates
 {
 	Idle,
 	Attacking,
@@ -23,7 +23,6 @@ enum CharacterStates
 	Disabled,
 	Dead
 };
-
 
 UCLASS()
 class VOICEPROJECT_API AFremenCharacter : public ACharacter, public ICombatable
@@ -35,7 +34,7 @@ public:
 	AFremenCharacter();
 	void InstallStateMachineHandlers();
 
-	StateMachine<CharacterStates> CharacterStateMachine;
+	StateMachine<ECharacterStates> CharacterStateMachine;
 
 protected:
 	// Called when the game starts or when spawned

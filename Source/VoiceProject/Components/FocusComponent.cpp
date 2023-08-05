@@ -3,8 +3,11 @@
 
 #include "Components/FocusComponent.h"
 
+#include "CombatComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Characters/Focusable.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Utils/Logger.h"
 
@@ -55,6 +58,8 @@ void UFocusComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 
 void UFocusComponent::ToggleFocus()
 {
+	SetComponentTickEnabled(!bIsInFocus);
+	
 	if (bIsInFocus)
 	{
 		bIsInFocus = false;
@@ -63,52 +68,74 @@ void UFocusComponent::ToggleFocus()
 	{
 		Focus();
 	}
-	
-	SetComponentTickEnabled(!bIsInFocus);
 }
 
 
 void UFocusComponent::Focus()
 {
-	if (FindTarget())
+	IFocusable* OutFocusable;
+	if (FindTarget(&OutFocusable) && OutFocusable->CanBeFocused())
 	{
-		
+		ActorInFocus = OutFocusable;
+		UpdateOwnerRotationMode();
+		bIsInFocus = true;
 	}
 }
 
-bool UFocusComponent::FindTarget()
+bool UFocusComponent::FindTarget(IFocusable** OutFocusable)
 {
 	FVector StartLocation = GetOwner()->GetActorLocation();
 	FVector EndLocation = StartLocation + FollowCamera->GetForwardVector() * FocusDistance;
 	float Radius = 100.0f; 
-	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
-	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_Pawn)); 
-	bool bTraceComplex = false; 
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes = {UEngineTypes::ConvertToObjectType(ECC_Pawn)};
 	TArray<AActor*> ActorsToIgnore = {GetOwner()};
-	EDrawDebugTrace::Type DrawDebugType = DebugTrace; 
 	FHitResult OutHit; 
-	bool bIgnoreSelf = true;
 
-	if (UKismetSystemLibrary::SphereTraceSingleForObjects(
-		GetWorld(),
-		StartLocation,
-		EndLocation,
-		Radius,
-		ObjectTypes,
-		bTraceComplex,
-		ActorsToIgnore,
-		DrawDebugType,
-		OutHit,
-		bIgnoreSelf))
+	if (UKismetSystemLibrary::SphereTraceSingleForObjects(GetWorld(), StartLocation, EndLocation, Radius, ObjectTypes,
+		false, ActorsToIgnore, DebugTrace,OutHit,true)
+		&& OutHit.GetActor() != nullptr)
 	{
-		// Sphere trace hit something
-		ActorInFocus = OutHit.GetActor();
-		FVector HitLocation = OutHit.ImpactPoint;
-		return true;
+		if (IFocusable* Focusable = Cast<IFocusable>(OutHit.GetActor()))
+		{
+			*OutFocusable = Focusable;
+			return true;
+		}
 	}
 
-	// Sphere trace didn't hit anything
+	// Sphere trace didn't hit anything that implements IFocusable
 	ActorInFocus = nullptr;
 	return false;
+}
+
+void UFocusComponent::SetRotationMode(ERelativeOrientation OrientTo) const
+{
+	switch (OrientTo)
+	{
+		case OrientToCamera:
+			// TODO: remove bUseControllerRotationYaw set after check for mistake
+			OwnerCharacter->bUseControllerRotationYaw = false;
+			OwnerCharacter->GetCharacterMovement()->bUseControllerDesiredRotation = true;
+			OwnerCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
+			break;
+		
+		case OrientToMovement:
+			OwnerCharacter->bUseControllerRotationYaw = false;
+			OwnerCharacter->GetCharacterMovement()->bUseControllerDesiredRotation = false;
+			OwnerCharacter->GetCharacterMovement()->bOrientRotationToMovement = true;
+			break;
+	}
+}
+
+void UFocusComponent::UpdateOwnerRotationMode()
+{
+	const auto CombatComponent = Cast<UCombatComponent>(OwnerCharacter->GetComponentByClass(UCombatComponent::StaticClass()));
+	if (CombatComponent && CombatComponent->IsCombatEnabled() && bIsInFocus)
+	{
+		SetRotationMode(OrientToCamera);
+	}
+	else
+	{
+		SetRotationMode(OrientToMovement);
+	}
 }
 

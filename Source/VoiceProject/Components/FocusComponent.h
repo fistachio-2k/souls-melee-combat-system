@@ -6,8 +6,15 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "FocusComponent.generated.h"
 
+class IFocusable;
 class UActorComponent;
 class UCameraComponent;
+
+enum ERelativeOrientation
+{
+	OrientToMovement,
+	OrientToCamera
+};
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class VOICEPROJECT_API UFocusComponent : public UActorComponent
@@ -28,8 +35,10 @@ protected:
 	void ToggleFocus();
 
 private:
-	bool FindTarget();
 	void Focus();
+	bool FindTarget(IFocusable**);
+	void SetRotationMode(ERelativeOrientation OrientTo) const;
+	void UpdateOwnerRotationMode();
 	bool bIsInFocus;
 	
 	UPROPERTY(EditAnywhere, Category="Debug")
@@ -38,8 +47,8 @@ private:
 	UPROPERTY(EditAnywhere)
 	float FocusDistance = 500.f;
 	
-	UPROPERTY()
-	AActor* ActorInFocus;
+	IFocusable* ActorInFocus;
+	
 	UPROPERTY()
 	ACharacter* OwnerCharacter;
 	UPROPERTY()
