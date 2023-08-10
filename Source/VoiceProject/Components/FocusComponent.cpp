@@ -64,7 +64,7 @@ void UFocusComponent::ToggleFocus()
 	if (bIsInFocus)
 	{
 		bIsInFocus = false;
-		SetRotationMode(OrientToCamera);
+		SetRotationMode(OrientToMovement);
 	}
 	else
 	{
@@ -80,9 +80,9 @@ void UFocusComponent::Focus()
 	IFocusable* OutFocusable;
 	if (FindTarget(&OutFocusable) && OutFocusable->CanBeFocused())
 	{
+		bIsInFocus = true;
 		ActorInFocus = OutFocusable;
 		UpdateOwnerRotationMode();
-		bIsInFocus = true;
 	}
 }
 
@@ -152,7 +152,7 @@ void UFocusComponent::SetRotationMode(ERelativeOrientation OrientTo) const
 	{
 		case OrientToCamera:
 			// TODO: remove bUseControllerRotationYaw set after check for mistake
-			OwnerCharacter->bUseControllerRotationYaw = false;
+			OwnerCharacter->bUseControllerRotationYaw = true;
 			OwnerCharacter->GetCharacterMovement()->bUseControllerDesiredRotation = true;
 			OwnerCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
 			break;
