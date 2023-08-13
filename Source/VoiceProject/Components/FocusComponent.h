@@ -42,7 +42,8 @@ private:
 	void SetRotationMode(ERelativeOrientation OrientTo) const;
 	void UpdateOwnerRotationMode() const;
 	bool bIsInFocus;
-	IFocusable* ActorInFocus;
+	
+	IFocusable* FocusTarget;
 	
 	UPROPERTY(EditAnywhere, Category="Debug")
 	TEnumAsByte<EDrawDebugTrace::Type> DebugTrace;
@@ -57,4 +58,6 @@ private:
 	AController* OwnerController;
 	UPROPERTY()
 	UCameraComponent* FollowCamera;
+	UPROPERTY()
+	AActor* ActorInFocus;
 };

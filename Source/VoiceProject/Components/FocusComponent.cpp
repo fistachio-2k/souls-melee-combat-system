@@ -81,7 +81,8 @@ void UFocusComponent::Focus()
 	if (FindTarget(&OutFocusable) && OutFocusable->CanBeFocused())
 	{
 		bIsInFocus = true;
-		ActorInFocus = OutFocusable;
+		FocusTarget = OutFocusable;
+		ActorInFocus = ActorInFocus = Cast<AActor>(OutFocusable);
 		UpdateOwnerRotationMode();
 	}
 }
@@ -90,7 +91,7 @@ void UFocusComponent::ChangeRotation() const
 {
 	constexpr int Threshold = 0;
 	const FVector SourceLocation = GetOwner()->GetActorLocation();
-	const FVector TargetLocation = Cast<AActor>(ActorInFocus)->GetActorLocation() - FVector(0, 0, Threshold);
+	const FVector TargetLocation = Cast<AActor>(FocusTarget)->GetActorLocation() - FVector(0, 0, Threshold);
 			
 	// Calculate the rotation from the source location to the target location
 	const FRotator LockAtRotation = UKismetMathLibrary::FindLookAtRotation(SourceLocation, TargetLocation);
@@ -109,9 +110,10 @@ void UFocusComponent::ChangeRotation() const
 
 void UFocusComponent::UpdateFocus()
 {
-	if (OwnerCharacter && OwnerController)
+	if (OwnerCharacter && OwnerController && ActorInFocus)
 	{
-		if (ActorInFocus->CanBeFocused())
+		const float CurrentDistance = GetOwner()->GetDistanceTo(ActorInFocus);
+		if (FocusTarget->CanBeFocused() && CurrentDistance < FocusDistance)
 		{
 			ChangeRotation();
 			return;
@@ -142,7 +144,7 @@ bool UFocusComponent::FindTarget(IFocusable** OutFocusable)
 	}
 
 	// Sphere trace didn't hit anything that implements IFocusable
-	ActorInFocus = nullptr;
+	FocusTarget = nullptr;
 	return false;
 }
 
