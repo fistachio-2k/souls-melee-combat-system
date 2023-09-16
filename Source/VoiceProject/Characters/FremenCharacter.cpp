@@ -11,6 +11,7 @@
 #include "VoiceProject/Items/Interactable.h"
 #include "VoiceProject/Utils/Logger.h"
 #include "NiagaraFunctionLibrary.h"
+#include "Components/FocusComponent.h"
 #include "Components/RagdollComponent.h"
 
 // Sets default values
@@ -33,6 +34,9 @@ AFremenCharacter::AFremenCharacter()
 
 	RagdollComponent = CreateDefaultSubobject<URagdollComponent>(TEXT("RagdollComponent"));
 	AddOwnedComponent(RagdollComponent);
+
+	FocusComponent = CreateDefaultSubobject<UFocusComponent>(TEXT("FocusComponent"));
+	AddOwnedComponent(FocusComponent);
 
 	CharacterStateMachine = StateMachine(Idle);
 }
@@ -73,6 +77,7 @@ void AFremenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindAction(TEXT("HeavyAttack"), IE_Pressed, this, &AFremenCharacter::HeavyAttack);
 	PlayerInputComponent->BindAction(TEXT("Interact"), IE_Pressed, this, &AFremenCharacter::Interact);
 	PlayerInputComponent->BindAction(TEXT("Dodge"), IE_Pressed, this, &AFremenCharacter::Dodge);
+	PlayerInputComponent->BindAction(TEXT("Focus"), IE_Pressed, this, &AFremenCharacter::Focus);
 }
 
 void AFremenCharacter::MoveForward(float AxisValue)
@@ -163,6 +168,15 @@ void AFremenCharacter::Dodge()
 	if (CharacterStateMachine.MoveToState(Dodging))
 	{
 		PerformDodge();
+	}
+}
+
+void AFremenCharacter::Focus()
+{
+	Logger::Log(ELogLevel::INFO, __FUNCTION__);
+	if (CombatComponent->IsCombatEnabled())
+	{
+		FocusComponent->ToggleFocus();
 	}
 }
 
@@ -265,6 +279,17 @@ void AFremenCharacter::ResetMovementState()
 bool AFremenCharacter::CanReceiveDamage()
 {
 	return CharacterStateMachine.GetCurrentState() != Dead;
+}
+
+bool AFremenCharacter::CanBeFocused()
+{
+	return CharacterStateMachine.GetCurrentState() != Dead;
+}
+
+void AFremenCharacter::OnFocused(bool bIsFocused)
+{
+	// TODO: make ui element visible
+	return;
 }
 
 FRotator AFremenCharacter::GetSignificantInputRotation(float Threshold)
