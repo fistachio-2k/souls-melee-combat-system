@@ -42,6 +42,7 @@ private:
 	void SetRotationMode(ERelativeOrientation OrientTo) const;
 	void UpdateOwnerRotationMode() const;
 	bool bIsInFocus;
+	bool bIsEndOfFocusTransition;
 	
 	IFocusable* FocusTarget;
 	
@@ -51,6 +52,7 @@ private:
 	float FocusDistance = 500.f;
 	UPROPERTY(EditAnywhere)
 	float Speed = 9;
+	FTimerHandle EndOfFocusTimerHandle;
 	
 	UPROPERTY()
 	ACharacter* OwnerCharacter;

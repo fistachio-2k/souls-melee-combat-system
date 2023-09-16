@@ -51,6 +51,23 @@ void UFocusComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	if (bIsEndOfFocusTransition)
+	{
+		const FRotator CurrentRotation = OwnerController->GetControlRotation();
+		const FRotator DesiredRotation(0.f, CurrentRotation.Yaw ,CurrentRotation.Roll);
+
+		// Interpolate rotation according to speed
+		const auto InterpolatedRotation = UKismetMathLibrary::RInterpTo(CurrentRotation, DesiredRotation, UGameplayStatics::GetWorldDeltaSeconds(GetWorld()), Speed) ;
+			
+		// Set rotation values
+		const float Pitch = InterpolatedRotation.Pitch;
+		const float Yaw = CurrentRotation.Yaw;
+		const float Roll = CurrentRotation.Roll;
+
+		// Set owner rotation
+		OwnerController->SetControlRotation(FRotator(Pitch, Yaw, Roll));
+	}
+	
 	if (!bIsInFocus)
 	{
 		return;
@@ -64,14 +81,21 @@ void UFocusComponent::ToggleFocus()
 	if (bIsInFocus)
 	{
 		bIsInFocus = false;
+		bIsEndOfFocusTransition = true;
 		SetRotationMode(OrientToMovement);
+		FTimerDelegate ChangeCameraPitchDelegate;
+		ChangeCameraPitchDelegate.BindLambda([this]
+		{
+			SetComponentTickEnabled(false);\
+			bIsEndOfFocusTransition = false;
+			GetWorld()->GetTimerManager().ClearTimer(EndOfFocusTimerHandle);
+		});
+		GetWorld()->GetTimerManager().SetTimer(EndOfFocusTimerHandle, ChangeCameraPitchDelegate, 1, false);
 	}
 	else
 	{
 		Focus();
 	}
-	
-	SetComponentTickEnabled(bIsInFocus);
 }
 
 
@@ -81,17 +105,19 @@ void UFocusComponent::Focus()
 	if (FindTarget(&OutFocusable) && OutFocusable->CanBeFocused())
 	{
 		bIsInFocus = true;
+		bIsEndOfFocusTransition = false;
 		FocusTarget = OutFocusable;
 		ActorInFocus = ActorInFocus = Cast<AActor>(OutFocusable);
 		UpdateOwnerRotationMode();
+		SetComponentTickEnabled(true);
 	}
 }
 
 void UFocusComponent::ChangeRotation() const
 {
-	constexpr int Threshold = 0;
+	constexpr int PitchModifier = 100;
 	const FVector SourceLocation = GetOwner()->GetActorLocation();
-	const FVector TargetLocation = Cast<AActor>(FocusTarget)->GetActorLocation() - FVector(0, 0, Threshold);
+	const FVector TargetLocation = ActorInFocus->GetActorLocation() - FVector(0, 0, PitchModifier);
 			
 	// Calculate the rotation from the source location to the target location
 	const FRotator LockAtRotation = UKismetMathLibrary::FindLookAtRotation(SourceLocation, TargetLocation);
@@ -153,7 +179,6 @@ void UFocusComponent::SetRotationMode(ERelativeOrientation OrientTo) const
 	switch (OrientTo)
 	{
 		case OrientToCamera:
-			// TODO: remove bUseControllerRotationYaw set after check for mistake
 			OwnerCharacter->bUseControllerRotationYaw = true;
 			OwnerCharacter->GetCharacterMovement()->bUseControllerDesiredRotation = true;
 			OwnerCharacter->GetCharacterMovement()->bOrientRotationToMovement = false;
