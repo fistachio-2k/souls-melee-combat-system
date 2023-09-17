@@ -82,11 +82,12 @@ void UFocusComponent::ToggleFocus()
 	{
 		bIsInFocus = false;
 		bIsEndOfFocusTransition = true;
+		ActorInFocus = nullptr;
 		SetRotationMode(OrientToMovement);
 		FTimerDelegate ChangeCameraPitchDelegate;
 		ChangeCameraPitchDelegate.BindLambda([this]
 		{
-			SetComponentTickEnabled(false);\
+			SetComponentTickEnabled(false);
 			bIsEndOfFocusTransition = false;
 			GetWorld()->GetTimerManager().ClearTimer(EndOfFocusTimerHandle);
 		});

@@ -7,13 +7,13 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
-#include "SoulsMeleeCombatSystem/Components/CombatComponent.h"
-#include "SoulsMeleeCombatSystem/Items/Interactable.h"
-#include "SoulsMeleeCombatSystem/Utils/Logger.h"
 #include "NiagaraFunctionLibrary.h"
+#include "MotionWarpingComponent.h"
+#include "Items/Interactable.h"
+#include "Utils/Logger.h"
+#include "Components/CombatComponent.h"
 #include "Components/FocusComponent.h"
 #include "Components/RagdollComponent.h"
-#include "MotionWarpingComponent.h"
 
 // Sets default values
 AFremenCharacter::AFremenCharacter()
@@ -317,6 +317,23 @@ void AFremenCharacter::PerformAttack(EAttackType AttackType ,bool IsRandom)
 		CombatComponent->bIsAttacking = true;
 		CombatComponent->AttackCount ++;
 		CombatComponent->AttackCount %= MontagesArray.Num();
+
+		const AActor* Target = FocusComponent->ActorInFocus;
+		
+		if (Target && GetDistanceTo(Target) < MinWarpingDistance)
+		{
+			// calc unit vector in the direction from target to character, multiplied by the offset distance
+			auto OffsetFromTarget = GetActorLocation() - Target->GetActorLocation(); 
+			OffsetFromTarget.Normalize();
+			OffsetFromTarget *= WarpingTargetOffsetFactor;	
+			
+			MotionWarpingComponent->AddOrUpdateWarpTargetFromLocation(TEXT("Attack"), Target->GetActorLocation() + OffsetFromTarget);
+		}
+		else
+		{
+			MotionWarpingComponent->RemoveWarpTarget(TEXT("Attack"));
+		}
+
 		PlayAnimMontage(Montage);
 	}
 }

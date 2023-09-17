@@ -5,9 +5,7 @@
 #include "CoreMinimal.h"
 #include "Combatable.h"
 #include "Focusable.h"
-#include "MotionWarpingComponent.h"
 #include "NiagaraSystem.h"
-#include "Components/RagdollComponent.h"
 #include "GameFramework/Character.h"
 #include "Items/BaseWeapon.h"
 #include "Utils/StateMachine.h"
@@ -15,7 +13,9 @@
 
 class UFocusComponent;
 class UCombatComponent;
+class URagdollComponent;
 class ABaseWeapon;
+class UMotionWarpingComponent;
 
 enum ECharacterStates
 {
@@ -110,6 +110,12 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Animation") // TODO: consider move montage to CombatComp or BaseWeapon or some other state machine
 	UAnimMontage* DodgeMontage;
 
+	UPROPERTY(EditAnywhere, Category = "Animation Warping")
+	float MinWarpingDistance = 300.f;
+	
+	UPROPERTY(EditAnywhere, Category = "Animation Warping")
+	float WarpingTargetOffsetFactor = 100.f;
+	
 	UPROPERTY(VisibleAnywhere)
 	float Health = 100.f;
 
