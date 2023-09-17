@@ -8,6 +8,7 @@
 #include "GameFramework/Actor.h"
 #include "BaseWeapon.generated.h"
 
+class USphereComponent;
 class UCollisionTraceComponent;
 
 enum EAttackType
@@ -43,6 +44,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* MeshComponent;
+
+	UPROPERTY(VisibleAnywhere)
+	USphereComponent* InteractionSphere;
 	
 	UPROPERTY(EditAnywhere)
 	int Damage = 50;

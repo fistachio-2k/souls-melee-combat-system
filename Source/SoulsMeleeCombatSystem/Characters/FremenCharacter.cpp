@@ -148,7 +148,7 @@ void AFremenCharacter::Interact()
 {
 	Logger::Log(ELogLevel::INFO, __FUNCTION__);
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypesArray;
-	ObjectTypesArray.Init(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_GameTraceChannel1), 1);
+	ObjectTypesArray.Init(UEngineTypes::ConvertToObjectType(ECC_GameTraceChannel1), 1);
 
 	TArray<AActor*> OutArray;
 	TArray<AActor*> IgnoreActors;
