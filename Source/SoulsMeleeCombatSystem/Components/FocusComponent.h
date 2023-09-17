@@ -27,6 +27,9 @@ public:
 	
 	void ToggleFocus();
 
+	UPROPERTY()
+	AActor* ActorInFocus;
+	
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
@@ -60,6 +63,4 @@ private:
 	AController* OwnerController;
 	UPROPERTY()
 	UCameraComponent* FollowCamera;
-	UPROPERTY()
-	AActor* ActorInFocus;
 };

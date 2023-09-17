@@ -13,6 +13,7 @@
 #include "NiagaraFunctionLibrary.h"
 #include "Components/FocusComponent.h"
 #include "Components/RagdollComponent.h"
+#include "MotionWarpingComponent.h"
 
 // Sets default values
 AFremenCharacter::AFremenCharacter()
@@ -37,6 +38,8 @@ AFremenCharacter::AFremenCharacter()
 
 	FocusComponent = CreateDefaultSubobject<UFocusComponent>(TEXT("FocusComponent"));
 	AddOwnedComponent(FocusComponent);
+
+	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarpingComponent"));
 
 	CharacterStateMachine = StateMachine(Idle);
 }
