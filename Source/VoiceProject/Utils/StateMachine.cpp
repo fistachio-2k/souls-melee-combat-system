@@ -1,5 +1,6 @@
-﻿#include "StateMachine.h"
+﻿#pragma once
 
+#include "StateMachine.h"
 #include "Logger.h"
 
 template <typename E, typename T0>
