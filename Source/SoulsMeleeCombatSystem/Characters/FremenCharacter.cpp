@@ -7,10 +7,11 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
-#include "SoulsMeleeCombatSystem/Components/CombatComponent.h"
-#include "SoulsMeleeCombatSystem/Items/Interactable.h"
-#include "SoulsMeleeCombatSystem/Utils/Logger.h"
 #include "NiagaraFunctionLibrary.h"
+#include "MotionWarpingComponent.h"
+#include "Items/Interactable.h"
+#include "Utils/Logger.h"
+#include "Components/CombatComponent.h"
 #include "Components/FocusComponent.h"
 #include "Components/RagdollComponent.h"
 
@@ -37,6 +38,8 @@ AFremenCharacter::AFremenCharacter()
 
 	FocusComponent = CreateDefaultSubobject<UFocusComponent>(TEXT("FocusComponent"));
 	AddOwnedComponent(FocusComponent);
+
+	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarpingComponent"));
 
 	CharacterStateMachine = StateMachine(Idle);
 }
@@ -145,7 +148,7 @@ void AFremenCharacter::Interact()
 {
 	Logger::Log(ELogLevel::INFO, __FUNCTION__);
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypesArray;
-	ObjectTypesArray.Init(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_GameTraceChannel1), 1);
+	ObjectTypesArray.Init(UEngineTypes::ConvertToObjectType(ECC_GameTraceChannel1), 1);
 
 	TArray<AActor*> OutArray;
 	TArray<AActor*> IgnoreActors;
@@ -314,6 +317,23 @@ void AFremenCharacter::PerformAttack(EAttackType AttackType ,bool IsRandom)
 		CombatComponent->bIsAttacking = true;
 		CombatComponent->AttackCount ++;
 		CombatComponent->AttackCount %= MontagesArray.Num();
+
+		const AActor* Target = FocusComponent->ActorInFocus;
+		
+		if (Target && GetDistanceTo(Target) < MinWarpingDistance)
+		{
+			// calc unit vector in the direction from target to character, multiplied by the offset distance
+			auto OffsetFromTarget = GetActorLocation() - Target->GetActorLocation(); 
+			OffsetFromTarget.Normalize();
+			OffsetFromTarget *= WarpingTargetOffsetFactor;	
+			
+			MotionWarpingComponent->AddOrUpdateWarpTargetFromLocation(TEXT("Attack"), Target->GetActorLocation() + OffsetFromTarget);
+		}
+		else
+		{
+			MotionWarpingComponent->RemoveWarpTarget(TEXT("Attack"));
+		}
+
 		PlayAnimMontage(Montage);
 	}
 }

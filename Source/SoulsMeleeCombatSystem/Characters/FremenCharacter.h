@@ -6,7 +6,6 @@
 #include "Combatable.h"
 #include "Focusable.h"
 #include "NiagaraSystem.h"
-#include "Components/RagdollComponent.h"
 #include "GameFramework/Character.h"
 #include "Items/BaseWeapon.h"
 #include "Utils/StateMachine.h"
@@ -14,7 +13,9 @@
 
 class UFocusComponent;
 class UCombatComponent;
+class URagdollComponent;
 class ABaseWeapon;
+class UMotionWarpingComponent;
 
 enum ECharacterStates
 {
@@ -34,9 +35,6 @@ class SOULSMELEECOMBATSYSTEM_API AFremenCharacter : public ACharacter, public IC
 public:
 	// Sets default values for this character's properties
 	AFremenCharacter();
-	void InstallStateMachineHandlers();
-
-	StateMachine<ECharacterStates> CharacterStateMachine;
 
 protected:
 	// Called when the game starts or when spawned
@@ -53,6 +51,8 @@ public:
 	
 	virtual bool CanBeFocused() override;
 	virtual void OnFocused(bool bIsFocused) override;
+	
+	void InstallStateMachineHandlers();
 
 private:
 	void TrySpawnMainWeapon();
@@ -73,13 +73,15 @@ private:
 
 	void PerformAttack(EAttackType AttackType, bool IsRandom = false);
 	void PerformDodge();
-
+	
 	UFUNCTION(BlueprintCallable, Category = "Test")
 	void PerformDeath();
 	void DestroyCharacter();
 	
 	UFUNCTION()
 	void OnReceivePointDamage(AActor* DamagedActor, float Damage, class AController* InstigatedBy, FVector HitLocation, UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const UDamageType* DamageType, AActor* DamageCauser);
+	
+	StateMachine<ECharacterStates> CharacterStateMachine;
 	
 	UPROPERTY()
 	UCombatComponent* CombatComponent;
@@ -89,6 +91,9 @@ private:
 
 	UPROPERTY()
 	UFocusComponent* FocusComponent;
+	
+	UPROPERTY()
+	UMotionWarpingComponent* MotionWarpingComponent;
 	
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<ABaseWeapon> WeaponClass;
@@ -105,6 +110,12 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Animation") // TODO: consider move montage to CombatComp or BaseWeapon or some other state machine
 	UAnimMontage* DodgeMontage;
 
+	UPROPERTY(EditAnywhere, Category = "Animation Warping")
+	float MinWarpingDistance = 300.f;
+	
+	UPROPERTY(EditAnywhere, Category = "Animation Warping")
+	float WarpingTargetOffsetFactor = 100.f;
+	
 	UPROPERTY(VisibleAnywhere)
 	float Health = 100.f;
 

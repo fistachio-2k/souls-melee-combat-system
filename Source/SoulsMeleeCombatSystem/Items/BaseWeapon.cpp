@@ -22,6 +22,9 @@ ABaseWeapon::ABaseWeapon()
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	MeshComponent->SetupAttachment(Root);
 
+	InteractionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere"));
+	InteractionSphere->SetupAttachment(Root);
+
 	CollisionTraceComponent = CreateDefaultSubobject<UCollisionTraceComponent>(TEXT("CollisionTrace"));
 	AddOwnedComponent(CollisionTraceComponent);
 }
@@ -41,12 +44,12 @@ void ABaseWeapon::Interact(AActor* Caller)
 {
 	if (const AFremenCharacter* Character = Cast<AFremenCharacter>(Caller))
 	{
-		// TODO: Consider make a getter for the CombatComponent to avoid casting
 		UActorComponent* ActorComponent = Character->GetComponentByClass(UCombatComponent::StaticClass());
 		if (UCombatComponent* CombatComponent = Cast<UCombatComponent>(ActorComponent))
 		{
 			CombatComponent->SetMainWeapon(this);
-			//TODO: Get Collider and change Object Type (no Interactable), or separate spawner interaction from actual weapon!
+			// make weapon no longer interactable
+			InteractionSphere->BodyInstance.SetObjectType(ECC_WorldDynamic);
 		}
 	}
 }
