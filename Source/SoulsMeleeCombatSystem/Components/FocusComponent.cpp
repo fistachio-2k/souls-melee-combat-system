@@ -82,6 +82,8 @@ void UFocusComponent::ToggleFocus()
 	{
 		bIsInFocus = false;
 		bIsEndOfFocusTransition = true;
+		FocusTarget->OnFocused(false);
+		FocusTarget = nullptr;
 		ActorInFocus = nullptr;
 		SetRotationMode(OrientToMovement);
 		FTimerDelegate ChangeCameraPitchDelegate;
@@ -111,6 +113,7 @@ void UFocusComponent::Focus()
 		ActorInFocus = ActorInFocus = Cast<AActor>(OutFocusable);
 		UpdateOwnerRotationMode();
 		SetComponentTickEnabled(true);
+		OutFocusable->OnFocused(true);
 	}
 }
 
@@ -150,7 +153,7 @@ void UFocusComponent::UpdateFocus()
 	ToggleFocus(); // Toggle focus off
 }
 
-bool UFocusComponent::FindTarget(IFocusable** OutFocusable)
+bool UFocusComponent::FindTarget(IFocusable** OutFocusable) const
 {
 	FVector StartLocation = GetOwner()->GetActorLocation();
 	FVector EndLocation = StartLocation + FollowCamera->GetForwardVector() * FocusDistance;
@@ -171,7 +174,6 @@ bool UFocusComponent::FindTarget(IFocusable** OutFocusable)
 	}
 
 	// Sphere trace didn't hit anything that implements IFocusable
-	FocusTarget = nullptr;
 	return false;
 }
 

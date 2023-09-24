@@ -11,6 +11,7 @@
 #include "Utils/StateMachine.h"
 #include "FremenCharacter.generated.h"
 
+class UWidgetComponent;
 class UFocusComponent;
 class UCombatComponent;
 class URagdollComponent;
@@ -54,6 +55,9 @@ public:
 	
 	void InstallStateMachineHandlers();
 
+	UPROPERTY(EditAnywhere, Category = "UI")
+	UWidgetComponent* InFocusWidget;
+	
 private:
 	void TrySpawnMainWeapon();
 	void MoveForward(float AxisValue);
@@ -72,6 +76,7 @@ private:
 	void StartChargeAttack();
 
 	void PerformAttack(EAttackType AttackType, bool IsRandom = false);
+	void ApplyMotionWarping(FName WarpTargetName) const;
 	void PerformDodge();
 	
 	UFUNCTION(BlueprintCallable, Category = "Test")
@@ -103,13 +108,13 @@ private:
 	
 	UPROPERTY(EditAnywhere)
 	UNiagaraSystem* BloodEmitter;
-
+	
 	UPROPERTY(EditAnywhere, Category = "Animation")
 	UAnimMontage* HitMontage;
 	
-	UPROPERTY(EditAnywhere, Category = "Animation") // TODO: consider move montage to CombatComp or BaseWeapon or some other state machine
+	UPROPERTY(EditAnywhere, Category = "Animation")
 	UAnimMontage* DodgeMontage;
-
+	
 	UPROPERTY(EditAnywhere, Category = "Animation Warping")
 	float MinWarpingDistance = 300.f;
 	

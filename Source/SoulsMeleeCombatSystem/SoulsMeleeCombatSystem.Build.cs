@@ -8,7 +8,7 @@ public class SoulsMeleeCombatSystem : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore",  "Niagara", "MotionWarping" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore",  "Niagara", "MotionWarping", "UMG" });
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
 		PrivateIncludePaths.AddRange(
