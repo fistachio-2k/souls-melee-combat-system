@@ -14,6 +14,7 @@
 #include "Components/CombatComponent.h"
 #include "Components/FocusComponent.h"
 #include "Components/RagdollComponent.h"
+#include "Components/WidgetComponent.h"
 
 // Sets default values
 AFremenCharacter::AFremenCharacter()
@@ -38,8 +39,12 @@ AFremenCharacter::AFremenCharacter()
 
 	FocusComponent = CreateDefaultSubobject<UFocusComponent>(TEXT("FocusComponent"));
 	AddOwnedComponent(FocusComponent);
-
+	
 	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarpingComponent"));
+	AddOwnedComponent(MotionWarpingComponent);
+	
+	InFocusWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("InFocusWidget"));
+	InFocusWidget->SetupAttachment(RootComponent);
 
 	CharacterStateMachine = StateMachine(Idle);
 }
@@ -85,7 +90,7 @@ void AFremenCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 void AFremenCharacter::MoveForward(float AxisValue)
 {
-	if ((Controller != nullptr) && (AxisValue != 0.0f))
+	if (Controller != nullptr && AxisValue != 0.0f)
 	{
 		// find out which way is forward
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -186,7 +191,7 @@ void AFremenCharacter::Focus()
 void AFremenCharacter::Attack()
 {
 	Logger::Log(ELogLevel::INFO, __FUNCTION__);
-	if ((CombatComponent && !CombatComponent->IsCombatEnabled()))
+	if (CombatComponent && !CombatComponent->IsCombatEnabled())
 	{
 		return;
 	}
@@ -197,13 +202,8 @@ void AFremenCharacter::Attack()
 		
 	} else if (CharacterStateMachine.MoveToState(Attacking))
 	{
-		if (bIsChargedAttackReady)
-		{
-			PerformAttack(Charge);
-			return;
-		}
-		
-		PerformAttack(Light, false);
+		const EAttackType AttackType = bIsChargedAttackReady ? Charge : Light;
+		PerformAttack(AttackType);
 	}
 
 	ClearChargeAttack();
@@ -211,6 +211,8 @@ void AFremenCharacter::Attack()
 
 void AFremenCharacter::ClearChargeAttack()
 {
+	Logger::Log(ELogLevel::INFO, __FUNCTION__);
+
 	if (GetWorldTimerManager().IsTimerActive(ChargeAttackTimerHandle))
 	{
 		GetWorldTimerManager().ClearTimer(ChargeAttackTimerHandle);
@@ -225,7 +227,7 @@ void AFremenCharacter::HeavyAttack()
 	
 	ClearChargeAttack();
 	
-	if ((CombatComponent && !CombatComponent->IsCombatEnabled()))
+	if (CombatComponent && !CombatComponent->IsCombatEnabled())
 	{
 		return;
 	}
@@ -291,8 +293,7 @@ bool AFremenCharacter::CanBeFocused()
 
 void AFremenCharacter::OnFocused(bool bIsFocused)
 {
-	// TODO: make ui element visible
-	return;
+	InFocusWidget->SetVisibility(bIsFocused);
 }
 
 FRotator AFremenCharacter::GetSignificantInputRotation(float Threshold)
@@ -304,6 +305,25 @@ FRotator AFremenCharacter::GetSignificantInputRotation(float Threshold)
 	}
 
 	return GetActorRotation();
+}
+
+void AFremenCharacter::ApplyMotionWarping(FName WarpTargetName) const
+{
+	const AActor* Target = FocusComponent->ActorInFocus;
+		
+	if (Target && GetDistanceTo(Target) < MinWarpingDistance)
+	{
+		// calc unit vector in the direction from target to character, multiplied by the offset distance
+		auto OffsetFromTarget = GetActorLocation() - Target->GetActorLocation(); 
+		OffsetFromTarget.Normalize();
+		OffsetFromTarget *= WarpingTargetOffsetFactor;	
+			
+		MotionWarpingComponent->AddOrUpdateWarpTargetFromLocation(WarpTargetName, Target->GetActorLocation() + OffsetFromTarget);
+	}
+	else
+	{
+		MotionWarpingComponent->RemoveWarpTarget(WarpTargetName);
+	}
 }
 
 void AFremenCharacter::PerformAttack(EAttackType AttackType ,bool IsRandom)
@@ -318,22 +338,7 @@ void AFremenCharacter::PerformAttack(EAttackType AttackType ,bool IsRandom)
 		CombatComponent->AttackCount ++;
 		CombatComponent->AttackCount %= MontagesArray.Num();
 
-		const AActor* Target = FocusComponent->ActorInFocus;
-		
-		if (Target && GetDistanceTo(Target) < MinWarpingDistance)
-		{
-			// calc unit vector in the direction from target to character, multiplied by the offset distance
-			auto OffsetFromTarget = GetActorLocation() - Target->GetActorLocation(); 
-			OffsetFromTarget.Normalize();
-			OffsetFromTarget *= WarpingTargetOffsetFactor;	
-			
-			MotionWarpingComponent->AddOrUpdateWarpTargetFromLocation(TEXT("Attack"), Target->GetActorLocation() + OffsetFromTarget);
-		}
-		else
-		{
-			MotionWarpingComponent->RemoveWarpTarget(TEXT("Attack"));
-		}
-
+		ApplyMotionWarping(TEXT("Attack"));
 		PlayAnimMontage(Montage);
 	}
 }

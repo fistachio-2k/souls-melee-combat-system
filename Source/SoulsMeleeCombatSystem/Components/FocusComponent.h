@@ -41,7 +41,7 @@ private:
 	void Focus();
 	void ChangeRotation() const;
 	void UpdateFocus();
-	bool FindTarget(IFocusable**);
+	bool FindTarget(IFocusable**) const;
 	void SetRotationMode(ERelativeOrientation OrientTo) const;
 	void UpdateOwnerRotationMode() const;
 	bool bIsInFocus;
