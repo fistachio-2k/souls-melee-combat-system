@@ -89,7 +89,7 @@ bool ABaseWeapon::IsWeaponInHand() const
 	return bIsHandEquipped;
 }
 
-TArray<UAnimMontage*> ABaseWeapon::GetAttackMontages(EAttackType AttackType) const
+const TArray<UAnimMontage*>& ABaseWeapon::GetAttackMontages(EAttackType AttackType) const
 {
 	switch (AttackType)
 	{
@@ -100,18 +100,18 @@ TArray<UAnimMontage*> ABaseWeapon::GetAttackMontages(EAttackType AttackType) con
 	case Charge:
 		return ChargeAttackMontages;
 	default:
-		return TArray<UAnimMontage*>();
+		return LightAttackMontages;
 	}
 }
 
-void ABaseWeapon::WeaponHit(FHitResult HitResult)
+void ABaseWeapon::WeaponHit(const FHitResult& HitResult)
 {
 	Logger::Log(ELogLevel::INFO, __FUNCTION__);
 	if (const auto CombatableActor = Cast<ICombatable>(HitResult.GetActor()))
 	{
 		if (CombatableActor->CanReceiveDamage())
 		{
-			UGameplayStatics::ApplyPointDamage(HitResult.GetActor(), Damage, HitResult.ImpactNormal, HitResult, GetInstigatorController(), this,  UDamageType::StaticClass());
+			UGameplayStatics::ApplyPointDamage(HitResult.GetActor(), Damage, HitResult.ImpactNormal, HitResult, GetInstigatorController(), this,  DamageType);
 		}
 	}
 }

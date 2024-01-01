@@ -7,7 +7,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "CollisionTraceComponent.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHitResultDelegate, FHitResult, HitResult);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHitResultDelegate, const FHitResult&, HitResult);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class SOULSMELEECOMBATSYSTEM_API UCollisionTraceComponent : public UActorComponent

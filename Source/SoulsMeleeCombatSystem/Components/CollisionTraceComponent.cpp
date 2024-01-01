@@ -4,7 +4,6 @@
 #include "CollisionTraceComponent.h"
 
 #include "Kismet/GameplayStatics.h"
-#include "SoulsMeleeCombatSystem/Items/BaseWeapon.h"
 #include "SoulsMeleeCombatSystem/Utils/Logger.h"
 
 

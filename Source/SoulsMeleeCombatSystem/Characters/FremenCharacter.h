@@ -75,6 +75,7 @@ private:
 	void HeavyAttack();
 	void StartChargeAttack();
 
+	void SetWeaponDamageType(EAttackType Attack) const;
 	void PerformAttack(EAttackType AttackType, bool IsRandom = false);
 	void ApplyMotionWarping(FName WarpTargetName) const;
 	void PerformDodge();

@@ -40,7 +40,7 @@ public:
 	virtual void AttachActor(FName SocketNameToAttach) override;
 	virtual UPrimitiveComponent* GetItemMesh() override;
 	bool IsWeaponInHand() const;
-	TArray<UAnimMontage*> GetAttackMontages(EAttackType AttackType) const;
+	const TArray<UAnimMontage*>& GetAttackMontages(EAttackType AttackType) const;
 
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* MeshComponent;
@@ -71,11 +71,13 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Animation")
 	FName HandSocketName;
-
+	
+	UPROPERTY()
+	TSubclassOf<UDamageType> DamageType;
 
 private:
 	UFUNCTION()
-	void WeaponHit(FHitResult HitResult);
+	void WeaponHit(const FHitResult& HitResult);
 	
 	bool bIsHandEquipped = false;
 

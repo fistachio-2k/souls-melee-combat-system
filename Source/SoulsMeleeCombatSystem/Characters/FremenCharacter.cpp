@@ -15,6 +15,9 @@
 #include "Components/FocusComponent.h"
 #include "Components/RagdollComponent.h"
 #include "Components/WidgetComponent.h"
+#include "DemageTypes/HeavyDamage.h"
+#include "DemageTypes/KnockoutDamage.h"
+#include "DemageTypes/LightDamage.h"
 
 // Sets default values
 AFremenCharacter::AFremenCharacter()
@@ -339,6 +342,7 @@ void AFremenCharacter::PerformAttack(EAttackType AttackType ,bool IsRandom)
 		CombatComponent->AttackCount %= MontagesArray.Num();
 
 		ApplyMotionWarping(TEXT("Attack"));
+		SetWeaponDamageType(AttackType);
 		PlayAnimMontage(Montage);
 	}
 }
@@ -417,5 +421,25 @@ void AFremenCharacter::TrySpawnMainWeapon()
 			}
 		}
 	}
+}
+
+void AFremenCharacter::SetWeaponDamageType(EAttackType Attack) const
+{
+	TSubclassOf<UDamageType> DamageType;
+	switch (Attack) {
+	case Light:
+		DamageType = ULightDamage::StaticClass();
+		break;
+	case Heavy:
+		DamageType = UHeavyDamage::StaticClass();
+		break;
+	case Charge:
+		DamageType = UKnockoutDamage::StaticClass();
+		break;
+	default:
+		DamageType = ULightDamage::StaticClass();
+	}
+
+	CombatComponent->GetMainWeapon()->DamageType = DamageType;
 }
 
