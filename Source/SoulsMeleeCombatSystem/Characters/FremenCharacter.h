@@ -57,7 +57,7 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "UI")
 	UWidgetComponent* InFocusWidget;
-	
+
 private:
 	void TrySpawnMainWeapon();
 	void MoveForward(float AxisValue);
@@ -86,7 +86,8 @@ private:
 	
 	UFUNCTION()
 	void OnReceivePointDamage(AActor* DamagedActor, float Damage, class AController* InstigatedBy, FVector HitLocation, UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const UDamageType* DamageType, AActor* DamageCauser);
-	
+	void ApplyHitReaction(const FVector& HitPoint) const;
+	void PlayHitReactMontage(const FName& Section) const;
 	StateMachine<ECharacterStates> CharacterStateMachine;
 	
 	UPROPERTY()

@@ -391,18 +391,71 @@ void AFremenCharacter::OnReceivePointDamage(AActor* DamagedActor, float Damage, 
                                             const UDamageType* DamageType, AActor* DamageCauser)
 {
 	Logger::Log(ELogLevel::DEBUG, __FUNCTION__);
-
+	
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(),HitCue, HitLocation);
 	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), BloodEmitter, HitLocation, ShotFromDirection.Rotation());
-	PlayAnimMontage(HitMontage);
-	CharacterStateMachine.MoveToState(Disabled);
+
 	Health -= Damage;
 	
 	if (Health <= 0)
 	{
 		CharacterStateMachine.MoveToState(Dead);
 	}
+	else
+	{
+		CharacterStateMachine.MoveToState(Disabled);
+		ApplyHitReaction(HitLocation);
+	}
 }
+
+void AFremenCharacter::ApplyHitReaction(const FVector& HitPoint) const
+{
+	const FVector Forward = GetActorForwardVector();
+	const FVector HitPointLow(HitPoint.X, HitPoint.Y, GetActorLocation().Z);
+	const FVector ToHit = (HitPointLow - GetActorLocation()).GetSafeNormal(); // vector from character pos to hit point
+
+	// Forward * ToHit = |Forward||ToHit| * cos(theta)
+	// |Forward| = 1, |ToHit| = 1, so Forward * ToHit = cos(theta)
+	const double CosTheta = FVector::DotProduct(Forward, ToHit);
+	double Theta = FMath::Acos(CosTheta);
+	// convert from radians to degrees
+	Theta = FMath::RadiansToDegrees(Theta);
+
+	// if CrossProduct points down, Theta should be negative
+	const FVector CrossProduct = FVector::CrossProduct(Forward, ToHit);
+	if (CrossProduct.Z < 0)
+	{
+		Theta *= -1.f;
+	}
+
+	FName Section("FromBack");
+
+	if (Theta >= -45.f && Theta < 45.f)
+	{
+		Section = FName("FromFront");
+	}
+	else if (Theta >= -135.f && Theta < -45.f)
+	{
+		Section = FName("FromLeft");
+	}
+	else if (Theta >= 45.f && Theta < 135.f)
+	{
+		Section = FName("FromRight");
+	}
+
+	PlayHitReactMontage(Section);
+}
+
+void AFremenCharacter::PlayHitReactMontage(const FName& Section) const
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && HitMontage)
+	{
+		AnimInstance->Montage_Play(HitMontage);
+		AnimInstance->Montage_JumpToSection(Section, HitMontage);
+	}
+}
+
 
 void AFremenCharacter::TrySpawnMainWeapon()
 {
